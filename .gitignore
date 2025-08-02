@@ -16,7 +16,7 @@ public
 # npm packages installed
 package-lock.json
 src-tauri/Cargo.lock
-src-tauri/target/
+src-tauri/target/*
 
 # Editor directories and files
 .vscode/*
