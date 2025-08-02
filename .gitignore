@@ -11,6 +11,12 @@ node_modules
 dist
 dist-ssr
 *.local
+public
+
+# npm packages installed
+package-lock.json
+src-tauri/Cargo.lock
+src-tauri/target/
 
 # Editor directories and files
 .vscode/*
