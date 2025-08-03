@@ -123,4 +123,4 @@ Follow these steps in your terminal to build the application:
     ```
     **Note:** While this command creates a distributable application, EpiTelos is currently a high-fidelity prototype and is **not considered production-ready**.
 
-    After the build completes, you will find the installer for your application in the `src-tauri/target/release/` directory.
+    After the build completes, you will find the installer for your application in the `src-tauri/target/release/` folder.
