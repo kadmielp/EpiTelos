@@ -4,7 +4,7 @@
 
 EpiTelos is a high-fidelity prototype for an AI-augmented personal development application. Its purpose is to help users reach their highest potential by combining powerful AI models with deep, personal context from their own lives.
 
-This application is now ready to be compiled into a native desktop application for Windows, macOS, and Linux using the Tauri framework.
+![EpiTelos](https://github.com/kadmielp/EpiTelos/blob/main/images/app.png)
 
 This project is inspired by the concepts of [Fabric](https://github.com/danielmiessler/Fabric) and [Telos](https://github.com/danielmiessler/Telos).
 
