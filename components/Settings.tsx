@@ -104,10 +104,15 @@ export const Settings: React.FC<SettingsProps> = ({
                         
                         {/* Gemini Settings */}
                         {localSettings.modelSource === 'Gemini' && (
-                            <div className="p-4 bg-slate-900/50 rounded-lg">
+                            <div className="p-4 bg-slate-900/50 rounded-lg space-y-3">
                                 <label className="block text-sm font-medium text-slate-300">Gemini API Key</label>
-                                <input type="text" readOnly value="Using value from environment" className="mt-1 w-full max-w-md bg-slate-900 border border-slate-700 rounded-md p-2 text-slate-400 cursor-not-allowed" />
-                                <p className="text-xs text-slate-500 mt-1">API Key is securely managed in the application environment.</p>
+                                <div className="flex items-center gap-2">
+                                    <input type="password" value={localSettings.geminiApiKey || ''} onChange={e => handleLocalSettingsChange({ geminiApiKey: e.target.value })} className="flex-grow bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-blue-500 focus:border-blue-500" placeholder="AIzaSy..." />
+                                    <button onClick={() => verifyAndLoadModels('Gemini', localSettings)} disabled={verificationStatus?.type === 'verifying'} className="p-2 bg-slate-600 hover:bg-slate-500 rounded-md transition-colors disabled:opacity-50">
+                                        <RefreshIcon className={`w-5 h-5 ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
+                                    </button>
+                                </div>
+                                {renderVerificationStatus()}
                             </div>
                         )}
 

@@ -132,11 +132,64 @@ export async function* runCustomProviderFunctionStream({ systemPrompt, userPromp
 
     // @ts-ignore
     if (window.__TAURI__) {
-        console.log("🦀 Using Tauri HTTP client for custom provider streaming - falling back to non-streaming");
-        // Tauri doesn't handle streaming well, so use non-streaming mode and yield the result
-        const response = await runCustomProviderFunction({ systemPrompt, userPrompt, model, apiKey, apiUrl, signal });
-        yield response;
-        return;
+        console.log("🦀 Using Tauri HTTP client for custom provider streaming");
+        
+        try {
+            // @ts-ignore
+            const { fetch: tauriFetch, ResponseType } = window.__TAURI__.http;
+            
+            // Make the streaming request
+            const response = await tauriFetch(fullApiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                },
+                body: {
+                    type: 'Json',
+                    payload: requestBody
+                },
+                responseType: ResponseType.Text // Get raw text to handle streaming format
+            });
+
+            if (response.status !== 200) {
+                const errorMessage = response.data?.error?.message || 'An unknown error occurred';
+                throw new Error(`Custom provider API stream request failed with status ${response.status}: ${errorMessage}`);
+            }
+
+            console.log("📡 Got streaming response data from custom provider");
+            
+            // Parse the streaming response (Server-Sent Events format)
+            const responseText = String(response.data);
+            const lines = responseText.split('\n').filter(line => line.trim() !== '');
+            
+            for (const line of lines) {
+                if (signal?.aborted) break;
+                
+                if (line.startsWith('data: ')) {
+                    const jsonStr = line.substring(6);
+                    if (jsonStr === '[DONE]') {
+                        console.log("✅ Custom provider streaming completed");
+                        return;
+                    }
+                    try {
+                        const data = JSON.parse(jsonStr);
+                        const content = data.choices[0]?.delta?.content;
+                        if (content) {
+                            console.log("📝 Yielding custom provider chunk:", content);
+                            yield content;
+                            // Add small delay to simulate streaming
+                            await new Promise(resolve => setTimeout(resolve, 50));
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse custom provider stream chunk:", jsonStr, e);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("❌ Tauri custom provider streaming failed:", error);
+            throw error;
+        }
     } else {
         console.log("🌐 Using standard fetch for custom provider streaming");
         const response = await fetch(fullApiUrl, {

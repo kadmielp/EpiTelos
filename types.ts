@@ -36,11 +36,12 @@ export interface TreeNode {
 
 
 export interface ISettings {
-  apiKey: string; // Gemini API Key from env
+  apiKey: string; // Gemini API Key from env (deprecated)
   modelSource: 'Gemini' | 'Ollama' | 'OpenAI' | 'Custom';
   preferredModel: string;
   ollamaApiUrl?: string;
   openaiApiKey?: string;
+  geminiApiKey?: string;
   customApiUrl?: string;
   customApiKey?: string;
   defaultFunctionId: string | null;

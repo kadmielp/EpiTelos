@@ -82,7 +82,7 @@ const useAppLogic = () => {
     try {
       switch (source) {
         case 'Gemini':
-          result = await geminiService.verifyConnection();
+          result = await geminiService.verifyConnection(settingsToVerify.geminiApiKey || '');
           if (result.success) models = await geminiService.getModels();
           break;
         case 'OpenAI':
@@ -313,7 +313,10 @@ const useAppLogic = () => {
               });
             case 'Gemini':
             default:
-              return geminiService.runAIFunctionStream(streamParams);
+              return geminiService.runAIFunctionStream({
+                ...streamParams,
+                apiKey: settings.geminiApiKey || ''
+              });
           }
         };
 
@@ -397,7 +400,10 @@ const useAppLogic = () => {
             break;
           case 'Gemini':
           default:
-            response = await geminiService.runAIFunction(params);
+            response = await geminiService.runAIFunction({
+              ...params,
+              apiKey: settings.geminiApiKey || ''
+            });
             break;
         }
         if (!controller.signal.aborted) {
