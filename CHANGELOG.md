@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
+## [1.1.2] - 2025-08-06
+### Fixed
+- **Custom Provider Streaming**: Fixed streaming functionality for custom providers in Tauri desktop builds
+  - Implemented proper Server-Sent Events parsing for chunked streaming responses
+  - Added artificial delays between chunks for smooth streaming experience in desktop environment
+  - Handles both `data: [JSON]` and `[DONE]` completion markers correctly
+  - Maintains web compatibility with standard streaming implementation
+- **Streaming Response Parsing**: Enhanced custom provider streaming with proper error handling and edge cases
+  - Correctly parses incomplete JSON chunks and handles connection interruptions
+  - Added robust filtering for empty lines and malformed data chunks
+
+### Changed
+- **Gemini API Key Configuration**: Replaced environment variable-only configuration with user-editable interface
+  - Added editable Gemini API key input field in Settings UI (following OpenAI pattern)
+  - Updated Gemini service to accept API key parameter with environment variable fallback
+  - Added real-time connection verification with test API request for Gemini
+  - Maintains backward compatibility with existing environment variable setup
+- **API Key Management**: Standardized API key handling pattern across all providers (OpenAI, Gemini, Custom)
+  - All providers now support user-editable API keys through consistent Settings UI
+  - Enhanced connection verification with provider-specific validation
+
+### Technical Notes
+- Custom provider streaming now properly handles Server-Sent Events format in desktop builds
+- Gemini service creates new GoogleGenAI instance per request to support dynamic API keys
+- All AI providers maintain consistent interface patterns for better maintainability
+- Desktop builds support full streaming functionality across all providers
+
 ## [1.1.1] - 2025-01-06
 ### Fixed
 - **Ollama Desktop Integration**: Fixed critical issues preventing Ollama from working in the built desktop application

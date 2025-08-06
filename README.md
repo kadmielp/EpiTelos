@@ -8,8 +8,15 @@ EpiTelos is a high-fidelity prototype for an AI-augmented personal development a
 
 This project is inspired by the concepts of [Fabric](https://github.com/danielmiessler/Fabric) and [Telos](https://github.com/danielmiessler/Telos).
 
-## 🚀 What's New in Version 1.1.1
-This version resolves critical issues with AI provider integrations in desktop builds, making EpiTelos fully functional as a standalone desktop application:
+## 🚀 What's New in Version 1.1.2
+This version brings significant improvements to AI provider integrations and user experience:
+- **Custom Provider Streaming**: Fixed streaming functionality for custom providers in desktop builds with proper Server-Sent Events parsing
+- **Editable Gemini API Key**: Replaced read-only environment-based Gemini configuration with user-editable API key input in Settings
+- **Enhanced Desktop Compatibility**: All AI providers now support full streaming functionality in desktop environments
+- **Improved API Key Management**: Consistent pattern for API key configuration across all providers (OpenAI, Gemini, Custom)
+- **Better Error Handling**: Enhanced connection verification and error messages for all AI providers
+
+Previous updates (v1.1.1) included:
 - **Ollama Desktop Support**: Fixed all issues preventing Ollama from working in built desktop applications
 - **Custom Provider Desktop Support**: Resolved CORS issues preventing custom providers (Maritaca AI, Claude, etc.) from working in desktop builds
 - **Improved Build System**: Resolved build failures and configuration issues
@@ -62,7 +69,7 @@ EpiTelos supports multiple AI model providers, giving you full control over cost
 - **Ollama**: Connect to your own local models for maximum privacy. The app can auto-discover your installed models. ✅ **Fully supported in desktop builds**.
 - **Custom Provider**: Connect to any OpenAI-compatible API endpoint (Maritaca AI, Anthropic Claude, etc.) by providing a Base URL and API Key. ✅ **Fully supported in desktop builds**.
 - **OpenAI**: Use popular models like GPT-4o by providing your API key.
-- **Gemini**: Connects via an environment variable `API_KEY`.
+- **Gemini**: Connect using your Gemini API key through the Settings interface. ✅ **Fully supported in desktop builds**.
 
 ### 5. Session & Profile Management
 - **Session Persistence**: The app remembers your last session, prompting you to resume where you left off or start fresh.
