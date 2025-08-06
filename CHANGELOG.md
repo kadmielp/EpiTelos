@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
+## [1.1.1] - 2025-01-06
+### Fixed
+- **Ollama Desktop Integration**: Fixed critical issues preventing Ollama from working in the built desktop application
+  - Added HTTP permissions to `tauri.conf.json` to allow network requests in sandboxed environment
+  - Implemented Tauri-native HTTP client (`window.__TAURI__.http.fetch`) for desktop builds
+  - Added proper response type handling (Text vs JSON) for different API endpoints
+  - Fixed streaming functionality with simulated chunked responses for desktop environment
+  - Maintained backward compatibility with web/development environments
+- **Build System**: 
+  - Fixed missing icon configuration that prevented successful builds
+  - Added proper TypeScript exclusions for build artifacts in `tsconfig.json`
+  - Updated `.gitignore` to exclude build artifacts from version control
+- **Error Handling**: Improved error messages and added detailed logging for Ollama connection debugging
+- **Thinking Tags**: Ensured proper removal of `<think>...</think>` tags in both streaming and non-streaming modes
+
+### Technical Notes
+- Desktop builds now use `ResponseType.Text` for Ollama root endpoint and `ResponseType.Json` for API endpoints
+- Streaming responses work through response chunking with artificial delays for better UX
+- All AI providers (Gemini, OpenAI, Ollama, Custom) now fully supported in desktop builds
+
 ## [1.1.0]
 ### Added
 - **Brand Logo**: Added a brand logo icon next to the application title in the sidebar.

@@ -8,8 +8,14 @@ EpiTelos is a high-fidelity prototype for an AI-augmented personal development a
 
 This project is inspired by the concepts of [Fabric](https://github.com/danielmiessler/Fabric) and [Telos](https://github.com/danielmiessler/Telos).
 
-## 🚀 What's New in Version 1.1.0
-This version introduces several UI/UX enhancements to improve clarity and usability. Key updates include:
+## 🚀 What's New in Version 1.1.1
+This version resolves critical issues with Ollama integration in desktop builds, making EpiTelos fully functional as a standalone desktop application:
+- **Ollama Desktop Support**: Fixed all issues preventing Ollama from working in built desktop applications
+- **Improved Build System**: Resolved build failures and configuration issues
+- **Enhanced Error Handling**: Better debugging and error messages for connection issues
+- **Full Desktop Compatibility**: All AI providers now work correctly in both web and desktop environments
+
+Previous updates (v1.1.0) included:
 - **New Brand Logo**: A unique logo has been added to give the app a distinct identity.
 - **Resizable Panels**: The main "Run AI" screen now features a resizable divider, offering a more flexible workspace.
 - **UI Terminology**: Renamed "Function Runner" to the more intuitive "Run AI" across the app.
@@ -51,9 +57,9 @@ With EpiTelos, you can gain clarity and grow using your own life as context. For
 - **Secure Storage**: Custom functions are stored safely in your user application data directory.
 
 ### 4. Flexible Model Support
-EpiTelos supports multiple AI model providers, giving you full control over cost, privacy, and capability.
+EpiTelos supports multiple AI model providers, giving you full control over cost, privacy, and capability. All providers work seamlessly in both web and desktop environments.
+- **Ollama**: Connect to your own local models for maximum privacy. The app can auto-discover your installed models. ✅ **Fully supported in desktop builds**.
 - **Gemini**: Connects via an environment variable `API_KEY`.
-- **Ollama**: Connect to your own local models for maximum privacy. The app can auto-discover your installed models.
 - **OpenAI**: Use popular models like GPT-4o by providing your API key.
 - **Custom Provider**: Connect to any OpenAI-compatible API endpoint by providing a Base URL and API Key.
 
