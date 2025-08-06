@@ -52,32 +52,61 @@ export const runCustomProviderFunction = async ({ systemPrompt, userPrompt, mode
   }
 
   const fullApiUrl = `${apiUrl}/v1/chat/completions`;
+  const requestBody = {
+    model: model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+  } as OpenAIRequest;
 
   try {
-    const response = await fetch(fullApiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-      } as OpenAIRequest),
-      signal,
-    });
+    // @ts-ignore
+    if (window.__TAURI__) {
+      console.log("🦀 Using Tauri HTTP client for custom provider");
+      // @ts-ignore
+      const { fetch: tauriFetch, ResponseType } = window.__TAURI__.http;
+      const response = await tauriFetch(fullApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: {
+          type: 'Json',
+          payload: requestBody
+        },
+        responseType: ResponseType.Json
+      });
 
-    if (!response.ok) {
-      const errorBody = await response.json();
-      const errorMessage = errorBody?.error?.message || 'An unknown error occurred';
-      throw new Error(`Custom provider API request failed with status ${response.status}: ${errorMessage}`);
+      if (response.status !== 200) {
+        const errorMessage = response.data?.error?.message || 'An unknown error occurred';
+        throw new Error(`Custom provider API request failed with status ${response.status}: ${errorMessage}`);
+      }
+
+      const data: OpenAIResponse = response.data;
+      return data.choices[0]?.message?.content || 'No response content received from the custom provider.';
+    } else {
+      console.log("🌐 Using standard fetch for custom provider");
+      const response = await fetch(fullApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(requestBody),
+        signal,
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json();
+        const errorMessage = errorBody?.error?.message || 'An unknown error occurred';
+        throw new Error(`Custom provider API request failed with status ${response.status}: ${errorMessage}`);
+      }
+
+      const data: OpenAIResponse = await response.json();
+      return data.choices[0]?.message?.content || 'No response content received from the custom provider.';
     }
-
-    const data: OpenAIResponse = await response.json();
-    return data.choices[0]?.message?.content || 'No response content received from the custom provider.';
   } catch (error) {
     console.error("Error calling Custom Provider API:", error);
     if (error instanceof Error) {
@@ -92,62 +121,73 @@ export async function* runCustomProviderFunctionStream({ systemPrompt, userPromp
         throw new Error("Custom provider API URL or Key is not configured.");
     }
     const fullApiUrl = `${apiUrl}/v1/chat/completions`;
+    const requestBody = {
+        model: model,
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+        ],
+        stream: true,
+    };
 
-    const response = await fetch(fullApiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-            model: model,
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt },
-            ],
-            stream: true,
-        }),
-        signal,
-    });
+    // @ts-ignore
+    if (window.__TAURI__) {
+        console.log("🦀 Using Tauri HTTP client for custom provider streaming - falling back to non-streaming");
+        // Tauri doesn't handle streaming well, so use non-streaming mode and yield the result
+        const response = await runCustomProviderFunction({ systemPrompt, userPrompt, model, apiKey, apiUrl, signal });
+        yield response;
+        return;
+    } else {
+        console.log("🌐 Using standard fetch for custom provider streaming");
+        const response = await fetch(fullApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(requestBody),
+            signal,
+        });
 
-    if (!response.ok || !response.body) {
-        const errorBody = await response.text();
-        throw new Error(`Custom provider API stream request failed with status ${response.status}: ${errorBody}`);
-    }
+        if (!response.ok || !response.body) {
+            const errorBody = await response.text();
+            throw new Error(`Custom provider API stream request failed with status ${response.status}: ${errorBody}`);
+        }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-    try {
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const jsonStr = line.substring(6);
-                    if (jsonStr === '[DONE]') {
-                        return; // Stream finished
-                    }
-                    try {
-                        const data = JSON.parse(jsonStr);
-                        const content = data.choices[0]?.delta?.content;
-                        if (content) {
-                            yield content;
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const jsonStr = line.substring(6);
+                        if (jsonStr === '[DONE]') {
+                            return; // Stream finished
                         }
-                    } catch (e) {
-                        console.error("Error parsing custom provider stream chunk:", e, "Chunk:", jsonStr);
+                        try {
+                            const data = JSON.parse(jsonStr);
+                            const content = data.choices[0]?.delta?.content;
+                            if (content) {
+                                yield content;
+                            }
+                        } catch (e) {
+                            console.error("Error parsing custom provider stream chunk:", e, "Chunk:", jsonStr);
+                        }
                     }
                 }
             }
+        } finally {
+            reader.releaseLock();
         }
-    } finally {
-        reader.releaseLock();
     }
 }
 
@@ -159,21 +199,42 @@ export const verifyConnection = async (apiUrl: string, apiKey: string): Promise<
   const fullApiUrl = `${apiUrl}/v1/models`;
 
   try {
-    const response = await fetch(fullApiUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-      },
-    });
+    // @ts-ignore
+    if (window.__TAURI__) {
+      console.log("🦀 Using Tauri HTTP client for custom provider verification");
+      // @ts-ignore
+      const { fetch: tauriFetch, ResponseType } = window.__TAURI__.http;
+      const response = await tauriFetch(fullApiUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        responseType: ResponseType.Json
+      });
 
-    if (!response.ok) {
-        const errorBody = await response.json();
-        const errorMessage = errorBody?.error?.message || `API returned status ${response.status}`;
+      if (response.status !== 200) {
+        const errorMessage = response.data?.error?.message || `API returned status ${response.status}`;
         throw new Error(errorMessage);
-    }
-    
-    return { success: true, message: "Custom provider connection successful." };
+      }
+      
+      return { success: true, message: "Custom provider connection successful." };
+    } else {
+      console.log("🌐 Using standard fetch for custom provider verification");
+      const response = await fetch(fullApiUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+        },
+      });
 
+      if (!response.ok) {
+          const errorBody = await response.json();
+          const errorMessage = errorBody?.error?.message || `API returned status ${response.status}`;
+          throw new Error(errorMessage);
+      }
+      
+      return { success: true, message: "Custom provider connection successful." };
+    }
   } catch (error) {
     console.error("Custom provider connection verification failed:", error);
     if (error instanceof Error) {
@@ -193,17 +254,37 @@ export const getModels = async (apiUrl: string, apiKey: string): Promise<string[
     const fullApiUrl = `${apiUrl}/v1/models`;
     
     try {
-        const response = await fetch(fullApiUrl, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${apiKey}` },
-        });
-    
-        if (!response.ok) {
-            throw new Error(`API returned status ${response.status}`);
-        }
+        // @ts-ignore
+        if (window.__TAURI__) {
+            console.log("🦀 Using Tauri HTTP client for custom provider models");
+            // @ts-ignore
+            const { fetch: tauriFetch, ResponseType } = window.__TAURI__.http;
+            const response = await tauriFetch(fullApiUrl, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${apiKey}` },
+                responseType: ResponseType.Json
+            });
         
-        const data: OpenAIModelListResponse = await response.json();
-        return data.data.map(model => model.id).sort();
+            if (response.status !== 200) {
+                throw new Error(`API returned status ${response.status}`);
+            }
+            
+            const data: OpenAIModelListResponse = response.data;
+            return data.data.map(model => model.id).sort();
+        } else {
+            console.log("🌐 Using standard fetch for custom provider models");
+            const response = await fetch(fullApiUrl, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${apiKey}` },
+            });
+        
+            if (!response.ok) {
+                throw new Error(`API returned status ${response.status}`);
+            }
+            
+            const data: OpenAIModelListResponse = await response.json();
+            return data.data.map(model => model.id).sort();
+        }
     } catch (error) {
         console.error("Failed to get Custom Provider models:", error);
         if (error instanceof Error) {

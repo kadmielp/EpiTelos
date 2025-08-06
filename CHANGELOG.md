@@ -13,17 +13,23 @@ and this project adheres to Semantic Versioning.
   - Added proper response type handling (Text vs JSON) for different API endpoints
   - Fixed streaming functionality with simulated chunked responses for desktop environment
   - Maintained backward compatibility with web/development environments
+- **Custom Provider Desktop Integration**: Fixed CORS issues preventing custom providers from working in desktop builds
+  - Implemented Tauri-native HTTP client for all custom provider functions
+  - Added support for custom API endpoints (including Maritaca AI, Anthropic Claude, etc.)
+  - Resolved "Connection failed due to CORS policy" errors in desktop environment
+  - Custom providers now work seamlessly in both web and desktop builds
 - **Build System**: 
   - Fixed missing icon configuration that prevented successful builds
   - Added proper TypeScript exclusions for build artifacts in `tsconfig.json`
   - Updated `.gitignore` to exclude build artifacts from version control
-- **Error Handling**: Improved error messages and added detailed logging for Ollama connection debugging
+- **Error Handling**: Improved error messages and added detailed logging for connection debugging
 - **Thinking Tags**: Ensured proper removal of `<think>...</think>` tags in both streaming and non-streaming modes
 
 ### Technical Notes
 - Desktop builds now use `ResponseType.Text` for Ollama root endpoint and `ResponseType.Json` for API endpoints
 - Streaming responses work through response chunking with artificial delays for better UX
 - All AI providers (Gemini, OpenAI, Ollama, Custom) now fully supported in desktop builds
+- HTTP scope includes common custom provider endpoints for maximum compatibility
 
 ## [1.1.0]
 ### Added

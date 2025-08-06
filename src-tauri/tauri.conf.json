@@ -26,7 +26,7 @@
       "http": {
         "all": true,
         "request": true,
-        "scope": ["http://localhost:11434/*", "https://**"]
+        "scope": ["http://localhost:11434/*", "https://**", "https://chat.maritaca.ai/**"]
       }
     },
     "bundle": {
