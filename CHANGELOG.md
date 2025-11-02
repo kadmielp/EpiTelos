@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
+## [1.1.3] - 2025-11-02
+
+### Fixed
+- **Checkbox Styling**: Fixed checkbox appearance to display blue when checked instead of grey
+  - Updated context source checkboxes in FunctionRunner to show blue background and border when selected
+  - Fixed "Hide Thinking" checkbox to display blue when checked
+  - Added custom CSS rules and `accent-color` styling for proper checkbox visual feedback
+- **Panel Resizing**: Fixed resizing issue where AI response panel was pushing layout and preventing size adjustments
+  - Added `flex-shrink-0` to left configuration panel and divider to prevent unwanted shrinking
+  - Added `maxWidth` constraint to left panel to respect resizing limits
+  - Changed right panel from `flex-grow` to `flex-1` for more predictable flex behavior
+  - Ensured divider maintains fixed width during resizing operations
+- **Style Tag Compatibility**: Fixed invalid `<style jsx>` usage in React/Vite components
+  - Removed Next.js-specific `jsx` attribute from style tags in FunctionRunner.tsx, FunctionManager.tsx, and ContextManager.tsx
+  - Replaced with standard `<style>` tags compatible with React/Vite architecture
+  - Custom scrollbar and line-clamp styles now properly applied without errors
+
+### Changed
+- **UI Revamp**: Comprehensive visual redesign across all components for modern, polished appearance
+  - Updated FunctionRunner with gradient backgrounds, glassmorphism effects, and refined spacing
+  - Enhanced FunctionManager with improved card layouts and visual hierarchy
+  - Redesigned ContextManager with modern styling and better visual feedback
+  - Improved color schemes, shadows, and transitions throughout the application
+  - Added custom scrollbars with gradient styling for better visual integration
+- **Collapse/Expand Button**: Updated button text and icon rotation for better UX clarity
+  - Changed button text to show directionally-appropriate labels ("Expand" when collapsed, "Collapse" when expanded)
+  - Adjusted chevron icon rotation to match panel state and button direction
+  - Improved visual consistency between button state and panel state
+
 ## [1.1.2] - 2025-08-06
 ### Fixed
 - **Custom Provider Streaming**: Fixed streaming functionality for custom providers in Tauri desktop builds
