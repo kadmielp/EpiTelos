@@ -8,28 +8,6 @@ EpiTelos is a high-fidelity prototype for an AI-augmented personal development a
 
 This project is inspired by the concepts of [Fabric](https://github.com/danielmiessler/Fabric) and [Telos](https://github.com/danielmiessler/Telos).
 
-## 🚀 What's New in Version 1.1.2
-This version brings significant improvements to AI provider integrations and user experience:
-- **Custom Provider Streaming**: Fixed streaming functionality for custom providers in desktop builds with proper Server-Sent Events parsing
-- **Editable Gemini API Key**: Replaced read-only environment-based Gemini configuration with user-editable API key input in Settings
-- **Enhanced Desktop Compatibility**: All AI providers now support full streaming functionality in desktop environments
-- **Improved API Key Management**: Consistent pattern for API key configuration across all providers (OpenAI, Gemini, Custom)
-- **Better Error Handling**: Enhanced connection verification and error messages for all AI providers
-
-Previous updates (v1.1.1) included:
-- **Ollama Desktop Support**: Fixed all issues preventing Ollama from working in built desktop applications
-- **Custom Provider Desktop Support**: Resolved CORS issues preventing custom providers (Maritaca AI, Claude, etc.) from working in desktop builds
-- **Improved Build System**: Resolved build failures and configuration issues
-- **Enhanced Error Handling**: Better debugging and error messages for connection issues
-- **Complete Desktop Compatibility**: All AI providers now work correctly in both web and desktop environments
-
-Previous updates (v1.1.0) included:
-- **New Brand Logo**: A unique logo has been added to give the app a distinct identity.
-- **Resizable Panels**: The main "Run AI" screen now features a resizable divider, offering a more flexible workspace.
-- **UI Terminology**: Renamed "Function Runner" to the more intuitive "Run AI" across the app.
-
-For a detailed list of all changes, please see the [Changelog](./CHANGELOG.md).
-
 ## 🧭 Core Pillars
 
 | Pillar          | Description                                                                                                                                              |
