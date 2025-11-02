@@ -99,7 +99,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView })
         {/* Footer with refined styling */}
         <div className="mt-4 pt-3 border-t border-slate-700/50">
           <div className="text-center text-[10px] text-slate-500 font-medium">
-            <p className="mb-1.5">Made with ❤️ by EpiTelos</p>
             <p className="text-[9px] text-slate-600">&copy; 2025 All rights reserved</p>
           </div>
         </div>
