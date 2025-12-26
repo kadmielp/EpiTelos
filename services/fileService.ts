@@ -24,7 +24,7 @@ export const getFunctions = async (): Promise<IAIFunction[]> => {
   try {
     const response = await fetch(`/built-in-functions.json?t=${Date.now()}`); // Bust cache
     if (!response.ok) {
-        throw new Error(`Could not load built-in-functions.json: ${response.statusText}`);
+      throw new Error(`Could not load built-in-functions.json: ${response.statusText}`);
     }
     const builtInFuncs = await response.json();
     // Ensure the loaded data is in the correct format
@@ -32,6 +32,8 @@ export const getFunctions = async (): Promise<IAIFunction[]> => {
       id: f.id,
       name: f.name,
       systemPrompt: f.systemPrompt,
+      description: f.description,
+      category: f.category,
       isCustom: false, // Explicitly set
     }));
   } catch (error) {
@@ -63,24 +65,24 @@ export const saveFunction = async (func: Partial<IAIFunction>): Promise<void> =>
     };
     customFuncs.push(newFunc);
   } else {
-      console.warn("Attempted to save a built-in function. This is not allowed.");
-      return;
+    console.warn("Attempted to save a built-in function. This is not allowed.");
+    return;
   }
   localStorage.setItem(CUSTOM_FUNCTIONS_STORAGE_KEY, JSON.stringify(customFuncs));
 };
 
 export const deleteFunction = async (functionId: string): Promise<void> => {
-    const customFuncsJson = localStorage.getItem(CUSTOM_FUNCTIONS_STORAGE_KEY);
-    let customFuncs: IAIFunction[] = customFuncsJson ? JSON.parse(customFuncsJson) : [];
-    
-    const initialLength = customFuncs.length;
-    customFuncs = customFuncs.filter(f => f.id !== functionId);
+  const customFuncsJson = localStorage.getItem(CUSTOM_FUNCTIONS_STORAGE_KEY);
+  let customFuncs: IAIFunction[] = customFuncsJson ? JSON.parse(customFuncsJson) : [];
 
-    if (customFuncs.length < initialLength) {
-        localStorage.setItem(CUSTOM_FUNCTIONS_STORAGE_KEY, JSON.stringify(customFuncs));
-    } else {
-        console.warn(`Attempted to delete non-existent or built-in function with ID: ${functionId}`);
-    }
+  const initialLength = customFuncs.length;
+  customFuncs = customFuncs.filter(f => f.id !== functionId);
+
+  if (customFuncs.length < initialLength) {
+    localStorage.setItem(CUSTOM_FUNCTIONS_STORAGE_KEY, JSON.stringify(customFuncs));
+  } else {
+    console.warn(`Attempted to delete non-existent or built-in function with ID: ${functionId}`);
+  }
 };
 
 
@@ -93,7 +95,7 @@ const getFileContent = async (path: string): Promise<string> => {
       return `[ERROR: Could not fetch content for ${path}. File not found or server error.]`;
     }
     return await response.text();
-  } catch(error) {
+  } catch (error) {
     console.error(`Failed to fetch ${path}`, error);
     return `[ERROR: Failed to fetch ${path}. Check network connection.]`;
   }
@@ -108,7 +110,7 @@ export const readSingleContextSource = async (source: IContextSource): Promise<s
   // Handle user-added paths (which are mocked)
   if (!source.path.startsWith('/contexts_sample')) {
     body = `(Note: This is simulated content for the user-added path: ${source.path})\n\n` +
-           `This is mock content for the path "${source.path}". In a real desktop application, the actual content would be read here.`;
+      `This is mock content for the path "${source.path}". In a real desktop application, the actual content would be read here.`;
     return `${header}${body}\n${footer}`;
   }
 
@@ -116,31 +118,31 @@ export const readSingleContextSource = async (source: IContextSource): Promise<s
   if (source.type === 'file') {
     body = await getFileContent(source.path);
   } else { // folder
-      const parentPathWithSlash = source.path.endsWith('/') ? source.path : `${source.path}/`;
+    const parentPathWithSlash = source.path.endsWith('/') ? source.path : `${source.path}/`;
 
-      const filesToRead = MOCK_SAMPLE_FILES.filter(path => {
-        if (source.excludedPaths?.includes(path)) return false;
-        if (!path.startsWith(parentPathWithSlash)) {
-          return false;
-        }
-        if (!source.includeSubfolders) {
-          const remainingPath = path.substring(parentPathWithSlash.length);
-          return !remainingPath.includes('/');
-        }
-        return true;
-      });
-
-      if (filesToRead.length === 0) {
-        body = `(Folder is empty or no matching sample files found for: ${source.path})`;
-      } else {
-        const fileContents = await Promise.all(
-          filesToRead.map(async (filePath) => {
-            const content = await getFileContent(filePath);
-            return `--- File: ${filePath} ---\n${content}`;
-          })
-        );
-        body = fileContents.join('\n\n');
+    const filesToRead = MOCK_SAMPLE_FILES.filter(path => {
+      if (source.excludedPaths?.includes(path)) return false;
+      if (!path.startsWith(parentPathWithSlash)) {
+        return false;
       }
+      if (!source.includeSubfolders) {
+        const remainingPath = path.substring(parentPathWithSlash.length);
+        return !remainingPath.includes('/');
+      }
+      return true;
+    });
+
+    if (filesToRead.length === 0) {
+      body = `(Folder is empty or no matching sample files found for: ${source.path})`;
+    } else {
+      const fileContents = await Promise.all(
+        filesToRead.map(async (filePath) => {
+          const content = await getFileContent(filePath);
+          return `--- File: ${filePath} ---\n${content}`;
+        })
+      );
+      body = fileContents.join('\n\n');
+    }
   }
 
   return `${header}${body}\n${footer}`;
@@ -170,8 +172,8 @@ export const getRawContextForInspection = async (source: IContextSource): Promis
 
   if (source.type === 'file') {
     return await getFileContent(source.path);
-  } 
-  
+  }
+
   // For folders, concatenate raw content of files with a minimal separator
   const parentPathWithSlash = source.path.endsWith('/') ? source.path : `${source.path}/`;
   const filesToRead = MOCK_SAMPLE_FILES.filter(path => {
@@ -199,46 +201,46 @@ export const getRawContextForInspection = async (source: IContextSource): Promis
 };
 
 export const expandFolderSource = async (source: IContextSource): Promise<IContextSource[]> => {
-    if (source.type !== 'folder') return [source];
+  if (source.type !== 'folder') return [source];
 
-    // For non-sample paths in web mode, we can only provide a mock expansion.
-    if (!source.path.startsWith('/contexts_sample')) {
-        return [{
-            id: `ctx-mock-${source.remark.replace(/\s/g, '')}`,
-            path: `${source.path}/mock-file.md`,
-            remark: `mock-file.md from ${source.remark}`,
-            type: 'file',
-            isHidden: source.isHidden,
-            includeSubfolders: false
-        }];
+  // For non-sample paths in web mode, we can only provide a mock expansion.
+  if (!source.path.startsWith('/contexts_sample')) {
+    return [{
+      id: `ctx-mock-${source.remark.replace(/\s/g, '')}`,
+      path: `${source.path}/mock-file.md`,
+      remark: `mock-file.md from ${source.remark}`,
+      type: 'file',
+      isHidden: source.isHidden,
+      includeSubfolders: false
+    }];
+  }
+
+  const parentPathWithSlash = source.path.endsWith('/') ? source.path : `${source.path}/`;
+
+  const filesToRead = MOCK_SAMPLE_FILES.filter(path => {
+    if (source.excludedPaths?.includes(path)) return false;
+    if (!path.startsWith(parentPathWithSlash)) return false;
+    if (!source.includeSubfolders) {
+      const remainingPath = path.substring(parentPathWithSlash.length);
+      return !remainingPath.includes('/');
     }
+    return true;
+  });
 
-    const parentPathWithSlash = source.path.endsWith('/') ? source.path : `${source.path}/`;
+  return filesToRead.map(filePath => {
+    const fileName = filePath.split('/').pop() || '';
+    const remark = fileName.includes('.') ? fileName.split('.').slice(0, -1).join('.') : fileName;
+    const isHiddenOverride = source.overrideHidden?.[filePath];
 
-    const filesToRead = MOCK_SAMPLE_FILES.filter(path => {
-        if (source.excludedPaths?.includes(path)) return false;
-        if (!path.startsWith(parentPathWithSlash)) return false;
-        if (!source.includeSubfolders) {
-            const remainingPath = path.substring(parentPathWithSlash.length);
-            return !remainingPath.includes('/');
-        }
-        return true;
-    });
-
-    return filesToRead.map(filePath => {
-        const fileName = filePath.split('/').pop() || '';
-        const remark = fileName.includes('.') ? fileName.split('.').slice(0, -1).join('.') : fileName;
-        const isHiddenOverride = source.overrideHidden?.[filePath];
-
-        return {
-            id: `ctx-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
-            path: filePath,
-            remark: remark,
-            type: 'file',
-            isHidden: typeof isHiddenOverride === 'boolean' ? isHiddenOverride : source.isHidden,
-            includeSubfolders: false,
-        };
-    });
+    return {
+      id: `ctx-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
+      path: filePath,
+      remark: remark,
+      type: 'file',
+      isHidden: typeof isHiddenOverride === 'boolean' ? isHiddenOverride : source.isHidden,
+      includeSubfolders: false,
+    };
+  });
 };
 
 
@@ -254,16 +256,16 @@ export const loadProfile = async (): Promise<any | null> => {
     const profile = JSON.parse(profileJson);
     // Migrate old profiles to ensure new settings exist
     if (!profile.settings.ollamaApiUrl) {
-        profile.settings.ollamaApiUrl = DEFAULT_SETTINGS.ollamaApiUrl;
+      profile.settings.ollamaApiUrl = DEFAULT_SETTINGS.ollamaApiUrl;
     }
     if (!('openaiApiKey' in profile.settings)) {
-        profile.settings.openaiApiKey = '';
+      profile.settings.openaiApiKey = '';
     }
     if (!('customApiUrl' in profile.settings)) {
-        profile.settings.customApiUrl = '';
+      profile.settings.customApiUrl = '';
     }
     if (!('customApiKey' in profile.settings)) {
-        profile.settings.customApiKey = '';
+      profile.settings.customApiKey = '';
     }
     return profile;
   }

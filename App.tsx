@@ -22,6 +22,7 @@ import * as geminiService from './services/geminiService';
 import * as ollamaService from './services/ollamaService';
 import * as openaiService from './services/openaiService';
 import * as customProviderService from './services/customProviderService';
+import * as maritacaService from './services/maritacaService';
 
 // @ts-ignore
 const isDesktop = !!window.__TAURI__;
@@ -49,7 +50,7 @@ const useAppLogic = () => {
   const [inspectModalTitle, setInspectModalTitle] = useState('');
 
   const [isStreaming, setIsStreaming] = useState(false);
-  const [removeThinkingTags, setRemoveThinkingTags] = useState(true);
+  const [showReasoning, setShowReasoning] = useState(false);
 
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [modelVerificationStatus, setModelVerificationStatus] = useState<VerificationStatus | null>(null);
@@ -66,7 +67,17 @@ const useAppLogic = () => {
   // Update settings
   const updateSettings = useCallback((newSettings: Partial<ISettings>) => {
     setSettings(prevSettings => {
-      const updated = { ...prevSettings, ...newSettings };
+      let updated = { ...prevSettings, ...newSettings };
+
+      // Sync provider-specific model fields if preferredModel is updated
+      if (newSettings.preferredModel !== undefined) {
+        const sourceField = `${updated.modelSource.toLowerCase()}Model` as keyof ISettings;
+        updated = {
+          ...updated,
+          [sourceField]: newSettings.preferredModel
+        };
+      }
+
       saveProfile(updated, userAddedContextsRef.current);
       return updated;
     });
@@ -101,6 +112,16 @@ const useAppLogic = () => {
           if (result.success) models = await customProviderService.getModels(
             settingsToVerify.customApiUrl || '',
             settingsToVerify.customApiKey || ''
+          );
+          break;
+        case 'Maritaca':
+          result = await maritacaService.verifyConnection(
+            settingsToVerify.maritacaApiUrl || '',
+            settingsToVerify.maritacaApiKey || ''
+          );
+          if (result.success) models = await maritacaService.getModels(
+            settingsToVerify.maritacaApiUrl || '',
+            settingsToVerify.maritacaApiKey || ''
           );
           break;
         default:
@@ -183,7 +204,9 @@ const useAppLogic = () => {
     settings.ollamaApiUrl,
     settings.openaiApiKey,
     settings.customApiUrl,
-    settings.customApiKey
+    settings.customApiKey,
+    settings.maritacaApiUrl,
+    settings.maritacaApiKey
   ]);
 
   useEffect(() => {
@@ -209,7 +232,7 @@ const useAppLogic = () => {
     setUserInput('');
     setAiResponse('');
     setIsStreaming(false);
-    setRemoveThinkingTags(true);
+    setShowReasoning(false);
   };
 
   // Session management
@@ -220,7 +243,7 @@ const useAppLogic = () => {
       setSelectedContextIds(session.lastContextIds);
       setUserInput(session.lastUserInput);
       setIsStreaming(session.isStreaming ?? false);
-      setRemoveThinkingTags(session.removeThinkingTags ?? true);
+      setShowReasoning(session.showReasoning ?? false);
       setSettings(prev => ({ ...prev, preferredModel: session.lastModel ?? prev.preferredModel }));
     }
     setShowSessionModal(false);
@@ -239,7 +262,7 @@ const useAppLogic = () => {
       lastContextIds: selectedContextIds,
       lastUserInput: userInput,
       isStreaming: isStreaming,
-      removeThinkingTags: removeThinkingTags,
+      showReasoning: showReasoning,
       timestamp: Date.now(),
     };
     await fileService.saveSession(session);
@@ -249,7 +272,7 @@ const useAppLogic = () => {
     selectedContextIds,
     userInput,
     isStreaming,
-    removeThinkingTags
+    showReasoning
   ]);
 
   // Stop generation
@@ -311,6 +334,12 @@ const useAppLogic = () => {
                 apiKey: settings.customApiKey || '',
                 apiUrl: settings.customApiUrl || ''
               });
+            case 'Maritaca':
+              return maritacaService.runMaritacaFunctionStream({
+                ...streamParams,
+                apiKey: settings.maritacaApiKey || '',
+                apiUrl: settings.maritacaApiUrl || ''
+              });
             case 'Gemini':
             default:
               return geminiService.runAIFunctionStream({
@@ -323,7 +352,7 @@ const useAppLogic = () => {
         const stream = getStream();
         let fullResponse = '';
 
-        if (removeThinkingTags) {
+        if (!showReasoning) {
           let displayResponse = '';
           let hasExitedThinking = false;
           let streamHadContent = false;
@@ -398,6 +427,13 @@ const useAppLogic = () => {
               apiUrl: settings.customApiUrl || ''
             });
             break;
+          case 'Maritaca':
+            response = await maritacaService.runMaritacaFunction({
+              ...params,
+              apiKey: settings.maritacaApiKey || '',
+              apiUrl: settings.maritacaApiUrl || ''
+            });
+            break;
           case 'Gemini':
           default:
             response = await geminiService.runAIFunction({
@@ -407,7 +443,7 @@ const useAppLogic = () => {
             break;
         }
         if (!controller.signal.aborted) {
-          if (removeThinkingTags) {
+          if (!showReasoning) {
             response = response.replace(/<think>[\s\S]*?<\/think>/, '').trim();
           }
           setAiResponse(response);
@@ -660,8 +696,8 @@ const useAppLogic = () => {
     inspectModalTitle,
     isStreaming,
     setIsStreaming,
-    removeThinkingTags,
-    setRemoveThinkingTags,
+    showReasoning,
+    setShowReasoning,
     availableModels,
     modelVerificationStatus,
     verifyAndLoadModels,
@@ -692,8 +728,8 @@ const App: React.FC = () => {
             handleViewContext={logic.handleViewContext}
             isStreaming={logic.isStreaming}
             setIsStreaming={logic.setIsStreaming}
-            removeThinkingTags={logic.removeThinkingTags}
-            setRemoveThinkingTags={logic.setRemoveThinkingTags}
+            showReasoning={logic.showReasoning}
+            setShowReasoning={logic.setShowReasoning}
             selectedModel={logic.settings.preferredModel}
             onSelectModel={model => logic.updateSettings({ preferredModel: model })}
             availableModels={logic.availableModels}

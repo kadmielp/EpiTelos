@@ -7,6 +7,12 @@ import { ContextTreeView, getDescendantSourceIds } from './ContextTreeView';
 import { FolderIcon } from './icons/FolderIcon';
 import { StopIcon } from './icons/StopIcon';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
+import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import { Modal } from './Modal';
+import { CopyIcon } from './icons/CopyIcon';
+import { CheckIcon } from './icons/CheckIcon';
+import { PlayIcon } from './icons/PlayIcon';
+import { BrainIcon } from './icons/BrainIcon';
 
 interface FunctionRunnerProps {
   functions: IAIFunction[];
@@ -25,8 +31,8 @@ interface FunctionRunnerProps {
   handleViewContext: (id: string) => void;
   isStreaming: boolean;
   setIsStreaming: (isStreaming: boolean) => void;
-  removeThinkingTags: boolean;
-  setRemoveThinkingTags: (remove: boolean) => void;
+  showReasoning: boolean;
+  setShowReasoning: (show: boolean) => void;
   selectedModel: string | null;
   onSelectModel: (model: string) => void;
   availableModels: string[];
@@ -50,93 +56,43 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
   handleViewContext,
   isStreaming,
   setIsStreaming,
-  removeThinkingTags,
-  setRemoveThinkingTags,
+  showReasoning,
+  setShowReasoning,
   selectedModel,
   onSelectModel,
   availableModels,
   isDesktop
 }) => {
-  // Responsive panel state
-  const [panelWidth, setPanelWidth] = useState(40); // percentage of container for left panel
+  // Panel state
   const [collapsedLeft, setCollapsedLeft] = useState(false);
-  const [isActivelyResizing, setIsActivelyResizing] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<boolean>(false);
 
-  // Refs for drag + accessibility
-  const isResizing = useRef(false);
+  // Refs
   const containerRef = useRef<HTMLDivElement>(null);
   const responsePanelRef = useRef<HTMLDivElement>(null);
-  const dividerRef = useRef<HTMLDivElement>(null);
 
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
   const modelSelectorRef = useRef<HTMLDivElement>(null);
+
+  const [isFunctionDropdownOpen, setIsFunctionDropdownOpen] = useState(false);
+  const [functionSearchQuery, setFunctionSearchQuery] = useState('');
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+  const functionDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modelSelectorRef.current && !modelSelectorRef.current.contains(event.target as Node)) {
         setIsModelSelectorOpen(false);
       }
+      if (functionDropdownRef.current && !functionDropdownRef.current.contains(event.target as Node)) {
+        setIsFunctionDropdownOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Drag handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    isResizing.current = true;
-    setIsActivelyResizing(true);
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-    // focus the divider for keyboard resize
-    dividerRef.current?.focus();
-  };
-
-  const handleMouseUp = useCallback(() => {
-    if (!isResizing.current) return;
-    isResizing.current = false;
-    setIsActivelyResizing(false);
-    document.body.style.cursor = 'default';
-    document.body.style.userSelect = 'auto';
-  }, []);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isResizing.current || !containerRef.current) return;
-    
-    // Use requestAnimationFrame for smoother updates
-    requestAnimationFrame(() => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const newWidth = ((e.clientX - rect.left) / rect.width) * 100;
-      const clamped = Math.max(25, Math.min(75, newWidth));
-      setPanelWidth(clamped);
-    });
-  }, []);
-
-  // Keyboard accessibility for the divider: ArrowLeft/ArrowRight and Enter to toggle collapse
-  const handleDividerKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
-      setPanelWidth(w => Math.max(25, w - 2));
-      e.preventDefault();
-    } else if (e.key === 'ArrowRight') {
-      setPanelWidth(w => Math.min(75, w + 2));
-      e.preventDefault();
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      setCollapsedLeft(prev => !prev);
-      e.preventDefault();
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [handleMouseMove, handleMouseUp]);
-
-  // Auto-scroll during streaming
+  // Auto-scroll
   useEffect(() => {
     if (isStreaming && responsePanelRef.current) {
       const el = responsePanelRef.current;
@@ -144,7 +100,7 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
     }
   }, [aiResponse, isStreaming]);
 
-  // Context toggle logic unchanged
+  // Context toggle
   const handleContextToggle = (node: TreeNode, isChecked: boolean) => {
     let fileIdsInSubtree = getDescendantSourceIds(node);
     if (node.source) fileIdsInSubtree.push(node.source.id);
@@ -164,12 +120,18 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
     onSaveSession();
   };
 
+  const handleCopyResponse = () => {
+    if (!aiResponse) return;
+    navigator.clipboard.writeText(aiResponse);
+    setCopyStatus(true);
+    setTimeout(() => setCopyStatus(false), 2000);
+  };
+
   const handleSaveOutput = async () => {
     if (!aiResponse) return;
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const defaultFilename = `epitelos_output_${timestamp}.md`;
 
-    // Desktop/tauri support preserved
     // @ts-ignore
     if (isDesktop && window.__TAURI__) {
       try {
@@ -181,7 +143,6 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
         }
       } catch (error) {
         console.error('Failed to save file:', error);
-        alert('An error occurred while saving the file. Please check the console for more details.');
       }
     } else {
       const blob = new Blob([aiResponse], { type: 'text/markdown;charset=utf-8' });
@@ -197,98 +158,129 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
   };
 
   const selectedFunction = functions.find(f => f.id === selectedFunctionId);
-  const builtInFunctions = functions.filter(f => !f.isCustom);
-  const customFunctions = functions.filter(f => f.isCustom);
+  const filteredFunctions = functions.filter(f =>
+    f.name.toLowerCase().includes(functionSearchQuery.toLowerCase()) ||
+    (f.category && f.category.toLowerCase().includes(functionSearchQuery.toLowerCase())) ||
+    (f.description && f.description.toLowerCase().includes(functionSearchQuery.toLowerCase()))
+  );
 
   return (
-    <div className="p-4 h-full flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative">
-      {/* Compact header */}
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Run AI</h2>
-          <div className="h-0.5 w-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-1" />
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setCollapsedLeft(prev => !prev)}
-            className="text-sm px-3 py-2 rounded-lg bg-slate-800/70 text-slate-200 hover:bg-slate-700/80 transition-all duration-200 border border-slate-700/50 hover:border-slate-600/50 shadow-lg flex items-center gap-2"
-            aria-pressed={collapsedLeft}
-            aria-label={collapsedLeft ? 'Expand configuration panel' : 'Collapse configuration panel'}
-          >
-            <ChevronDownIcon className={`w-4 h-4 transition-transform duration-300 ${collapsedLeft ? '-rotate-90' : 'rotate-90'}`} />
-            {collapsedLeft ? 'Collapse' : 'Expand'}
-          </button>
-        </div>
+    <div className="h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-200 selection:bg-blue-500/30">
+      {/* Premium Gradient Backgrounds Overlay */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
       </div>
 
-      {/* Floating expand button when collapsed */}
-      {collapsedLeft && (
-        <div className="fixed left-4 top-1/2 -translate-y-1/2 z-10 animate-in fade-in slide-in-from-left-5 duration-300">
-          <button
-            onClick={() => setCollapsedLeft(false)}
-            className="bg-gradient-to-r from-slate-800/95 to-slate-900/95 backdrop-blur-xl p-3 rounded-r-xl border border-l-0 border-slate-700/50 hover:from-slate-700/95 hover:to-slate-800/95 transition-all duration-300 shadow-2xl hover:shadow-blue-500/20 group"
-            aria-label="Expand configuration panel"
-            title="Expand configuration panel"
-          >
-            <ChevronDownIcon className="w-5 h-5 rotate-90 text-slate-400 group-hover:text-blue-400 transition-colors" />
-          </button>
-        </div>
-      )}
-
-      <div ref={containerRef} className="flex gap-4 flex-grow min-h-0">
-        {/* Left Configuration Panel */}
+      {/* Main Content Area */}
+      <div ref={containerRef} className="flex flex-grow min-h-0 z-10 p-3 pt-4 gap-3">
+        {/* Configuration Panel */}
         <aside
           aria-hidden={collapsedLeft}
-          className={`flex flex-col bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-xl overflow-hidden border shadow-2xl flex-shrink-0 ${
-            isActivelyResizing ? 'will-change-[width]' : 'transition-all duration-300 ease-in-out'
-          } ${
-            collapsedLeft 
-              ? 'w-0 opacity-0 p-0 pointer-events-none border-0' 
-              : 'min-w-[280px] border-slate-700/50 opacity-100'
-          }`}
-          style={{ width: collapsedLeft ? 0 : `${panelWidth}%`, maxWidth: collapsedLeft ? 0 : '75%' }}
+          className={`flex flex-col bg-slate-900/60 backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsedLeft ? 'w-0 opacity-0 pointer-events-none' : 'w-[40%] max-w-[500px] opacity-100'
+            }`}
         >
-          <div className="flex-grow p-4 space-y-4 overflow-y-auto custom-scrollbar">
-            {/* AI Function selector */}
-            <div className="space-y-2">
-              <label htmlFor="function-select" className="block text-xs font-semibold text-slate-200 uppercase tracking-wide">AI Function</label>
-              <select
-                id="function-select"
-                value={selectedFunctionId ?? ''}
-                onChange={(e) => setSelectedFunctionId(e.target.value)}
-                className="w-full bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300 hover:bg-slate-800"
-                aria-label="Select AI function"
-              >
-                <option value="" disabled>Select a function</option>
-                {builtInFunctions.length > 0 && (
-                  <optgroup label="Built-in Functions">
-                    {builtInFunctions.map(func => (
-                      <option key={func.id} value={func.id}>{func.name}</option>
-                    ))}
-                  </optgroup>
-                )}
-                {customFunctions.length > 0 && (
-                  <optgroup label="Custom Functions">
-                    {customFunctions.map(func => (
-                      <option key={func.id} value={func.id}>{func.name}</option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-            </div>
+          {/* Sidebar Header */}
+          <div className="px-5 py-4 border-b border-white/5 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Control Hub</h2>
+          </div>
 
-            {selectedFunction && (
-              <div className="text-xs p-3 bg-gradient-to-br from-slate-900/90 to-slate-950/90 rounded-lg text-slate-300 max-h-28 overflow-y-auto border border-slate-700/30 shadow-inner backdrop-blur-sm custom-scrollbar">
-                <p className="font-bold text-blue-400 mb-1.5 uppercase tracking-wider text-[10px]">System Prompt</p>
-                <p className="whitespace-pre-wrap leading-relaxed text-[11px]">{selectedFunction.systemPrompt}</p>
+          <div className="flex-grow overflow-y-auto custom-scrollbar p-5 space-y-3">
+            {/* Function Selection Section */}
+            <section className="space-y-3">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Active Function</label>
+
+              <div ref={functionDropdownRef} className="relative">
+                {/* Combined dropdown + description container */}
+                <div className={`bg-slate-900/60 border border-white/10 overflow-hidden transition-all ${selectedFunction?.description ? 'rounded-t-xl' : 'rounded-xl'}`}>
+                  <button
+                    onClick={() => setIsFunctionDropdownOpen(!isFunctionDropdownOpen)}
+                    className="w-full px-4 py-3 text-left transition-all hover:bg-slate-800/60 group flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3 overflow-hidden flex-grow min-w-0">
+                      <p className={`text-sm font-semibold truncate ${selectedFunction ? 'text-white' : 'text-slate-500'}`}>
+                        {selectedFunction ? selectedFunction.name : 'Select function...'}
+                      </p>
+                      {selectedFunction && (
+                        <span className="text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">
+                          {selectedFunction.category || 'Standard'}
+                        </span>
+                      )}
+                    </div>
+                    <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform duration-300 flex-shrink-0 ml-2 ${isFunctionDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
+
+                {selectedFunction?.description && (
+                  <div className="bg-slate-900/40 border-x border-b border-white/10 rounded-b-xl px-4 py-3 flex items-start justify-between gap-2">
+                    <p className="text-xs text-slate-500 leading-relaxed italic line-clamp-2 flex-grow">
+                      "{selectedFunction.description}"
+                    </p>
+                    <button
+                      onClick={() => setShowSystemPrompt(true)}
+                      className="p-1 rounded-lg hover:bg-white/10 text-slate-600 hover:text-blue-400 transition-all flex-shrink-0"
+                      title="View System Prompt"
+                    >
+                      <ExternalLinkIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {isFunctionDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-3 bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-top-2 flex flex-col max-h-[450px]">
+                    <div className="p-3 border-b border-white/5">
+                      <div className="relative">
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder="Search intelligence..."
+                          value={functionSearchQuery}
+                          onChange={(e) => setFunctionSearchQuery(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-grow overflow-y-auto custom-scrollbar p-2 space-y-4">
+                      {Object.entries(
+                        filteredFunctions.reduce((acc, f) => {
+                          const cat = f.isCustom ? 'Custom Intelligence' : (f.category || 'General');
+                          if (!acc[cat]) acc[cat] = [];
+                          acc[cat].push(f);
+                          return acc;
+                        }, {} as Record<string, typeof functions>)
+                      ).sort((a, b) => a[0].localeCompare(b[0])).map(([cat, funcs]) => (
+                        <div key={cat}>
+                          <p className="px-2 text-[9px] font-black uppercase tracking-widest text-slate-600 mb-1">{cat}</p>
+                          {funcs.sort((a, b) => a.name.localeCompare(b.name)).map(f => (
+                            <button
+                              key={f.id}
+                              onClick={() => { setSelectedFunctionId(f.id); setIsFunctionDropdownOpen(false); setFunctionSearchQuery(''); }}
+                              className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all flex items-center justify-between group/item ${selectedFunctionId === f.id ? 'bg-blue-600 text-white' : 'hover:bg-white/5 text-slate-300'}`}
+                            >
+                              <span className="font-medium">{f.name}</span>
+                              {selectedFunctionId === f.id && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_white]" />}
+                            </button>
+                          ))}
+                        </div>
+                      ))}
+                      {filteredFunctions.length === 0 && (
+                        <div className="py-8 text-center text-slate-600 text-xs italic">No matching functions found</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </section>
 
-            {/* Context sources */}
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-200 uppercase tracking-wide">Context Sources</label>
-              <div className="bg-slate-800/60 border border-slate-600/40 rounded-lg p-3 max-h-48 overflow-y-auto backdrop-blur-sm shadow-inner custom-scrollbar">
+            {/* Context Knowledge Section */}
+            <section className="space-y-3">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Knowledge Sources</label>
+              <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-2 max-h-[280px] overflow-y-auto custom-scrollbar">
                 {contexts.length > 0 ? (
                   <ContextTreeView
                     contexts={contexts}
@@ -296,42 +288,40 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
                       const allDescendantFiles = getDescendantSourceIds(node);
                       if (node.source) allDescendantFiles.push(node.source.id);
                       const uniqueFiles = [...new Set(allDescendantFiles)];
-
                       const isChecked = uniqueFiles.length > 0 && uniqueFiles.every(id => selectedContextIds.includes(id));
                       const isIndeterminate = uniqueFiles.length > 0 && !isChecked && uniqueFiles.some(id => selectedContextIds.includes(id));
-
                       const isFolder = !node.source;
-                      const nodeType = isFolder ? 'folder' : 'file';
-                      const nodeRemark = node.source?.remark || node.name;
-                      const nodeId = node.source?.id || node.id;
-                      const nodePath = node.source?.path || node.id;
 
                       return (
-                        <div className="flex items-center justify-between w-full p-1.5 rounded-lg hover:bg-slate-700/60 transition-all duration-200 group">
+                        <div className="flex items-center justify-between w-full px-2 py-1.5 rounded-xl hover:bg-white/5 group transition-colors">
                           <div className="flex items-center min-w-0 flex-grow">
-                            <input
-                              id={`ctx-run-${nodeId}`}
-                              type="checkbox"
-                              checked={isChecked}
-                              ref={el => { if (el) el.indeterminate = isIndeterminate; }}
-                              onChange={(e) => handleContextToggle(node, e.target.checked)}
-                              className="h-3.5 w-3.5 rounded-md border-2 border-slate-500 bg-slate-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer transition-all"
-                              style={{ accentColor: '#2563eb' }}
-                            />
-                            <label htmlFor={`ctx-run-${nodeId}`} className="ml-2 text-xs text-slate-200 flex items-center cursor-pointer select-none truncate flex-grow" title={nodePath}>
-                              <span className={`mr-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 uppercase tracking-wider transition-all ${nodeType === 'folder' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}`}>
-                                {nodeType === 'folder' ? 'DIR' : 'FILE'}
+                            <div className="relative flex items-center">
+                              <input
+                                id={`ctx-${node.id}`}
+                                type="checkbox"
+                                checked={isChecked}
+                                ref={el => { if (el) el.indeterminate = isIndeterminate; }}
+                                onChange={(e) => handleContextToggle(node, e.target.checked)}
+                                className="peer appearance-none h-4 w-4 rounded-lg bg-slate-800 border border-white/10 checked:bg-blue-600 checked:border-blue-500 transition-all cursor-pointer"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-white opacity-0 peer-checked:opacity-100 transition-opacity">
+                                <CheckIcon className="w-2.5 h-2.5 stroke-[3]" />
+                              </div>
+                              {isIndeterminate && <div className="absolute inset-0 flex items-center justify-center pointer-events-none"><div className="w-1.5 h-0.5 bg-white/50 rounded-full" /></div>}
+                            </div>
+                            <label htmlFor={`ctx-${node.id}`} className="ml-3 text-xs flex items-center min-w-0 cursor-pointer select-none">
+                              <span className={`mr-2.5 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${isFolder ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                                {isFolder ? 'DIR' : 'FILE'}
                               </span>
-                              <span className="truncate font-medium">{nodeRemark}</span>
+                              <span className={`truncate ${isChecked ? 'text-white' : 'text-slate-400'}`}>{node.source?.remark || node.name}</span>
                             </label>
                           </div>
                           {node.source && (
                             <button
                               onClick={(e) => { e.stopPropagation(); handleViewContext(node.source!.id); }}
-                              className="p-1 text-slate-400 hover:text-blue-400 rounded-md transition-all duration-200 flex-shrink-0 opacity-0 group-hover:opacity-100 hover:bg-slate-600/50"
-                              title={`View content of ${nodeRemark}`}
+                              className="p-1.5 text-slate-600 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all"
                             >
-                              <ExternalLinkIcon className="w-4 h-4" />
+                              <ExternalLinkIcon className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
@@ -339,208 +329,255 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
                     }}
                   />
                 ) : (
-                  <div className="text-slate-400 text-xs p-4 text-center">
-                    <p className="mb-1">No context sources added</p>
-                    <p className="text-[10px] text-slate-500">Go to Context Manager to add sources</p>
+                  <div className="py-10 text-center text-slate-600">
+                    <p className="text-xs">No knowledge sources available</p>
+                    <p className="text-[10px] mt-1 opacity-50 uppercase tracking-tighter">Add data in Context Manager</p>
                   </div>
                 )}
               </div>
-            </div>
+            </section>
 
-            {/* User prompt */}
-            <div className="space-y-2">
-              <label htmlFor="user-input" className="block text-xs font-semibold text-slate-200 uppercase tracking-wide">User Input / Prompt</label>
+            {/* Prompt Input */}
+            <section className="space-y-2">
+              <label htmlFor="user-input" className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Custom Instructions</label>
               <textarea
                 id="user-input"
-                rows={2}
+                rows={1}
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                className="w-full bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none transition-all duration-300 hover:bg-slate-800 backdrop-blur-sm custom-scrollbar placeholder:text-slate-500"
-                placeholder="Provide any additional thoughts, questions, or context here..."
+                placeholder="Add more context to the AI, or leave it empty."
+                className="w-full bg-slate-900/60 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all resize-none custom-scrollbar"
               />
-            </div>
+            </section>
           </div>
 
-          {/* Footer - compact with primary action */}
-          <div className="flex-shrink-0 p-4 border-t border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-950/80 backdrop-blur-md">
-            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-              <div ref={modelSelectorRef} className="relative">
-                <button
-                  onClick={() => setIsModelSelectorOpen(prev => !prev)}
-                  disabled={availableModels.length === 0}
-                  className="text-xs text-slate-300 bg-slate-800/80 px-3 py-2 rounded-lg whitespace-nowrap hover:bg-slate-700/80 transition-all duration-200 flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50 border border-slate-600/40 shadow-lg backdrop-blur-sm"
-                  aria-haspopup="listbox"
-                  aria-expanded={isModelSelectorOpen}
-                >
-                  <span className="text-slate-400">Model:</span>
-                  <span className="font-semibold text-white">{selectedModel || 'N/A'}</span>
-                  {availableModels.length > 0 && <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform duration-300 ${isModelSelectorOpen ? 'rotate-180' : ''}`} />}
-                </button>
-
-                {isModelSelectorOpen && availableModels.length > 0 && (
-                  <div className="absolute bottom-full mb-2 w-full min-w-max bg-slate-800/95 rounded-lg shadow-2xl z-10 p-1.5 border border-slate-600/50 max-h-48 overflow-y-auto backdrop-blur-xl custom-scrollbar animate-in fade-in slide-in-from-bottom-2 duration-200">
-                    <ul role="listbox" className="space-y-0.5">
-                      {availableModels.map(model => (
-                        <li key={model}>
-                          <button
-                            onClick={() => { onSelectModel(model); setIsModelSelectorOpen(false); }}
-                            className={`w-full text-left px-3 py-2 rounded-md text-xs transition-all duration-200 ${selectedModel === model ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold shadow-lg' : 'text-slate-200 hover:bg-slate-700/70'}`}
-                          >
-                            {model}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+          {/* Action Footer */}
+          <div className="p-3 border-t border-white/[0.08] space-y-2.5">
+            <div className="flex items-center justify-center">
+              <div className="flex items-center gap-2 bg-slate-900/60 p-1.5 px-2.5 rounded-xl border border-white/5 backdrop-blur-2xl shadow-lg">
+                {/* Model Selection */}
+                {availableModels.length > 0 && (
+                  <div ref={modelSelectorRef} className="relative flex items-center">
+                    <button
+                      onClick={() => setIsModelSelectorOpen(!isModelSelectorOpen)}
+                      className="text-[10px] bg-slate-800/50 hover:bg-slate-700/50 px-2.5 py-1.5 rounded-lg border border-white/5 transition-all flex items-center gap-2 group/btn"
+                    >
+                      <span className="text-slate-500 font-bold tracking-widest text-[9px]">MODEL</span>
+                      <span className="text-blue-400 font-black truncate max-w-[100px]">{selectedModel || 'NONE'}</span>
+                      <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-500 group-hover/btn:text-blue-400 transition-transform duration-300 ${isModelSelectorOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isModelSelectorOpen && (
+                      <div className="absolute left-0 bottom-full mb-2 w-64 bg-slate-900 border border-white/10 rounded-xl shadow-[0_-20px_50px_rgba(0,0,0,0.7)] z-[60] overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-bottom-2">
+                        <div className="p-1 px-4 text-[9px] font-black text-slate-500 uppercase py-2 border-b border-white/5 tracking-[0.2em] bg-white/[0.02]">Select Model</div>
+                        <div className="max-h-64 overflow-y-auto custom-scrollbar p-1.5">
+                          {availableModels.map(m => (
+                            <button
+                              key={m}
+                              onClick={() => { onSelectModel(m); setIsModelSelectorOpen(false); }}
+                              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all mb-0.5 last:mb-0 ${selectedModel === m ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}
+                            >
+                              {m}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
 
-              <div className="flex items-center gap-4 p-2 rounded-lg bg-slate-800/60 border border-slate-700/40 backdrop-blur-sm">
-                <label className="flex items-center cursor-pointer text-xs text-slate-300 font-medium group">
-                  <input 
-                    type="checkbox" 
-                    checked={removeThinkingTags} 
-                    onChange={e => setRemoveThinkingTags(e.target.checked)} 
-                    className="h-3.5 w-3.5 bg-slate-700 border-2 border-slate-500 focus:ring-2 focus:ring-blue-500 rounded-md transition-all"
-                    style={{ accentColor: '#2563eb' }}
-                  />
-                  <span className="ml-2 group-hover:text-white transition-colors">Hide "Thinking"</span>
-                </label>
+                <div className="w-px h-4 bg-white/10" />
 
-                <div className="w-px h-5 bg-slate-600/50"></div>
-
-                <label htmlFor="stream-toggle" className="flex items-center cursor-pointer group">
-                  <span className="mr-2 text-slate-300 text-xs font-medium group-hover:text-white transition-colors">Stream</span>
-                  <div className="relative">
-                    <input 
-                      id="stream-toggle" 
-                      type="checkbox" 
-                      className="sr-only peer" 
-                      checked={isStreaming} 
-                      onChange={e => setIsStreaming(e.target.checked)} 
-                    />
-                    <div className="w-10 h-5 bg-slate-600 rounded-full peer-checked:bg-gradient-to-r peer-checked:from-blue-600 peer-checked:to-blue-500 transition-all duration-300 shadow-inner"></div>
-                    <div className="absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform duration-300 peer-checked:translate-x-5 shadow-lg"></div>
+                {/* Show Reasoning Toggle */}
+                <button
+                  onClick={() => setShowReasoning(!showReasoning)}
+                  className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors group"
+                  title="For reasoning models"
+                >
+                  <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative ${showReasoning ? 'bg-blue-600' : 'bg-white/10'} border border-white/5`}>
+                    <div className={`absolute top-0.5 w-2.5 h-2.5 bg-white rounded-full transition-all duration-300 shadow-md ${showReasoning ? 'left-[14px]' : 'left-0.5'}`} />
                   </div>
-                </label>
+                  <span className="text-[9px] uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-200 transition-colors whitespace-nowrap">Show Reasoning</span>
+                </button>
+
+                <div className="w-px h-3 bg-white/10" />
+
+                {/* Stream Toggle */}
+                <button
+                  onClick={() => setIsStreaming(!isStreaming)}
+                  className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors group"
+                >
+                  <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative ${isStreaming ? 'bg-purple-600' : 'bg-white/10'} border border-white/5`}>
+                    <div className={`absolute top-0.5 w-2.5 h-2.5 bg-white rounded-full transition-all duration-300 shadow-md ${isStreaming ? 'left-[14px]' : 'left-0.5'}`} />
+                  </div>
+                  <span className="text-[9px] uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-200 transition-colors whitespace-nowrap">Stream</span>
+                </button>
               </div>
             </div>
 
-            <div>
+            <div className="flex gap-2">
               {isLoading ? (
-                <button 
-                  onClick={onStop} 
-                  className="w-full bg-gradient-to-r from-red-600 to-red-500 text-white font-bold py-2.5 px-4 rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-300 flex justify-center items-center gap-2 shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] text-sm"
+                <button
+                  onClick={onStop}
+                  className="flex-grow bg-red-600/10 text-red-400 border border-red-500/20 py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-red-600/20 active:scale-95 transition-all font-bold text-sm tracking-tight"
                 >
                   <StopIcon className="w-4 h-4" />
-                  Stop Generation
+                  Interrupt Process
                 </button>
               ) : (
-                <button 
-                  onClick={handleRunClick} 
-                  disabled={!selectedFunctionId || !selectedModel} 
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2.5 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed transition-all duration-300 flex justify-center items-center shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] disabled:hover:scale-100"
+                <button
+                  onClick={handleRunClick}
+                  disabled={!selectedFunctionId || !selectedModel}
+                  className="flex-grow bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 hover:shadow-[0_0_25px_rgba(59,130,246,0.3)] disabled:opacity-30 disabled:grayscale transition-all active:scale-[0.98] font-bold text-sm tracking-tight"
                 >
-                  Run Function
+                  <PlayIcon className="w-4 h-4" />
+                  Run AI
                 </button>
               )}
             </div>
           </div>
         </aside>
 
-        {/* Divider / Resizer - Enhanced */}
-        {!collapsedLeft && (
+        {/* Divider with collapse toggle */}
+        <div className="relative flex items-center justify-center w-4 flex-shrink-0 z-20">
+          <button
+            onClick={() => setCollapsedLeft(!collapsedLeft)}
+            className="absolute top-1/2 -translate-y-1/2 w-5 h-10 bg-slate-900 border border-white/10 rounded-full flex items-center justify-center text-slate-500 hover:text-white hover:bg-slate-800 transition-all shadow-2xl opacity-60 hover:opacity-100"
+          >
+            <ChevronRightIcon className={`w-3.5 h-3.5 transition-transform duration-500 ${collapsedLeft ? '' : 'rotate-180'}`} />
+          </button>
+        </div>
+
+        {/* Output Panel */}
+        <main className="flex flex-col bg-slate-900/20 backdrop-blur-2xl rounded-3xl border border-white/5 flex-grow min-w-0 shadow-2xl overflow-hidden relative">
+          {/* Output Header */}
+          <div className="flex items-center justify-between px-6 py-4 bg-white/[0.02] border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-blue-500 animate-pulse' : aiResponse ? 'bg-emerald-500' : 'bg-slate-700'}`} />
+              <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Response Terminal</h3>
+            </div>
+            <div className="flex gap-2">
+              {aiResponse && (
+                <>
+                  <button
+                    onClick={handleCopyResponse}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-[10px] font-bold uppercase tracking-wider"
+                  >
+                    {copyStatus ? <CheckIcon className="w-3.5 h-3.5 text-emerald-400" /> : <CopyIcon className="w-3.5 h-3.5 text-slate-400" />}
+                    {copyStatus ? 'Copied' : 'Copy'}
+                  </button>
+                  <button
+                    onClick={handleSaveOutput}
+                    disabled={isLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 text-blue-400 transition-all text-[10px] font-bold uppercase tracking-wider"
+                  >
+                    <SaveIcon className="w-3.5 h-3.5" />
+                    Export .MD
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Actual Response Content */}
           <div
-            ref={dividerRef}
-            role="separator"
-            tabIndex={0}
-            aria-orientation="vertical"
-            aria-label="Resize configuration panel. Use arrow keys to adjust width, Enter to collapse."
-            onMouseDown={handleMouseDown}
-            onKeyDown={handleDividerKeyDown}
-            className="group flex items-center justify-center w-3 flex-shrink-0 cursor-col-resize select-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 rounded transition-all"
-            title="Drag to resize, use arrow keys, or press Enter to collapse"
+            ref={responsePanelRef}
+            className="flex-grow overflow-y-auto p-8 custom-scrollbar relative"
           >
-            <div className={`w-1 h-20 rounded-full shadow-lg transition-all duration-300 ${
-              isActivelyResizing 
-                ? 'bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 scale-110' 
-                : 'bg-gradient-to-b from-slate-700 via-slate-600 to-slate-700 group-hover:from-blue-500 group-hover:via-purple-500 group-hover:to-pink-500 group-focus:from-blue-500 group-focus:via-purple-500 group-focus:to-pink-500'
-            }`} />
-          </div>
-        )}
-
-        {/* Right (output) panel */}
-        <main className="flex flex-col bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl p-4 rounded-xl overflow-hidden flex-1 min-w-0 border border-slate-700/50 shadow-2xl">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div>
-              <h3 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">AI Response</h3>
-              <p className="text-xs text-slate-400">Results and generated content appear here</p>
-            </div>
-            <div>
-              <button 
-                onClick={handleSaveOutput} 
-                disabled={!aiResponse || isLoading} 
-                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold py-1.5 px-3 text-xs rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-1.5 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 disabled:hover:scale-100"
-              >
-                <SaveIcon className="w-3.5 h-3.5" />
-                Save Output
-              </button>
-            </div>
-          </div>
-
-          <div 
-            ref={responsePanelRef} 
-            aria-live="polite" 
-            className="bg-gradient-to-br from-slate-900/80 to-slate-950/80 rounded-lg p-4 flex-grow overflow-y-auto border border-slate-700/30 shadow-inner backdrop-blur-sm custom-scrollbar min-h-[200px]"
-          >
-            {isLoading && !aiResponse && (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <div className="inline-block w-10 h-10 border-4 border-slate-600 border-t-blue-500 rounded-full animate-spin mb-3" />
-                  <p className="text-sm text-slate-400 font-medium">Generating response...</p>
+            {isLoading && !aiResponse ? (
+              <div className="h-full flex flex-col items-center justify-center space-y-6">
+                <div className="relative">
+                  <div className="w-16 h-16 border-b-2 border-blue-500 rounded-full animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <BrainIcon className="w-8 h-8 text-blue-500/50 animate-pulse" />
+                  </div>
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-sm font-semibold text-white tracking-wide">Processing Knowledge</p>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Generating unique insights...</p>
                 </div>
               </div>
-            )}
-
-            {aiResponse ? (
-              <div className="prose prose-invert prose-sm max-w-none prose-headings:text-transparent prose-headings:bg-gradient-to-r prose-headings:from-blue-400 prose-headings:to-purple-400 prose-headings:bg-clip-text prose-a:text-blue-400 prose-code:text-pink-400 prose-pre:bg-slate-950/50 prose-pre:border prose-pre:border-slate-700/50">
+            ) : aiResponse ? (
+              <div className="prose prose-invert prose-slate prose-sm max-w-none 
+                prose-headings:font-black prose-headings:tracking-tight prose-headings:text-white
+                prose-p:text-slate-300 prose-p:leading-relaxed
+                prose-strong:text-blue-400 prose-strong:font-bold
+                prose-code:text-emerald-400 prose-code:bg-emerald-500/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
+                prose-pre:bg-slate-950 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-2xl prose-pre:shadow-2xl
+                prose-li:text-slate-400
+                prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-500/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-xl
+                animate-in fade-in duration-700
+              ">
                 <Markdown>{aiResponse}</Markdown>
               </div>
             ) : (
-              !isLoading && (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-slate-500 text-center">
-                    <span className="block text-4xl mb-3 opacity-20">✨</span>
-                    <span className="text-sm font-medium">Output will appear here</span>
+              <div className="h-full flex flex-col items-center justify-center opacity-40">
+                <div className="p-8 rounded-full bg-white/5 mb-6">
+                  <PlayIcon className="w-12 h-12 text-slate-600" />
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-bold text-slate-500 mb-1">Awaiting function</p>
+                  <p className="text-xs text-slate-600 leading-relaxed whitespace-nowrap">
+                    Select a function, provide context, and click Run AI to begin.
                   </p>
                 </div>
-              )
+              </div>
             )}
           </div>
+
         </main>
       </div>
 
+      {/* Global Component Styles */}
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15,23,42,0.3); border-radius:10px }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, rgb(71,85,105), rgb(51,65,85)); border-radius:10px }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, rgb(59,130,246), rgb(147,51,234)); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 20px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.3); }
         
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slide-in-from-left-5 { from { transform: translateX(-1.25rem) translateY(-50%); } to { transform: translateX(0) translateY(-50%); } }
-        @keyframes slide-in-from-bottom-2 { from { transform: translateY(0.5rem); } to { transform: translateY(0); } }
+        @keyframes slide-in-from-top-1 { from { transform: translateY(-4px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slide-in-from-top-2 { from { transform: translateY(-12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slide-in-from-bottom-2 { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .animate-in { animation-duration: 0.3s; animation-fill-mode: both; }
+        .animate-in { animation: 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
         .fade-in { animation-name: fade-in; }
-        .slide-in-from-left-5 { animation-name: slide-in-from-left-5; }
+        .slide-in-from-top-1 { animation-name: slide-in-from-top-1; }
+        .slide-in-from-top-2 { animation-name: slide-in-from-top-2; }
         .slide-in-from-bottom-2 { animation-name: slide-in-from-bottom-2; }
-        
-        input[type="checkbox"]:checked {
-          background-color: rgb(37, 99, 235) !important;
-          border-color: rgb(59, 130, 246) !important;
-          accent-color: rgb(37, 99, 235);
+
+        pre code {
+          font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace !important;
+          font-size: 0.85rem !important;
+          line-height: 1.6 !important;
         }
+
+        .prose hr { border-color: rgba(255,255,255,0.05); margin: 2rem 0; }
       `}</style>
+
+      {/* System Prompt Modal Override */}
+      {selectedFunction && (
+        <Modal
+          isOpen={showSystemPrompt}
+          onClose={() => setShowSystemPrompt(false)}
+          title={`Intelligence Core: ${selectedFunction.name}`}
+        >
+          <div className="space-y-6 p-1">
+            <div className="space-y-2">
+              <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">System Architecture Reference</p>
+              <div className="bg-slate-950 rounded-2xl p-6 border border-white/10 font-mono text-[11px] text-slate-300 leading-relaxed max-h-[65vh] overflow-y-auto custom-scrollbar whitespace-pre-wrap shadow-inner selection:bg-blue-500/40">
+                {selectedFunction.systemPrompt}
+              </div>
+            </div>
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setShowSystemPrompt(false)}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-xl shadow-blue-500/20 active:scale-95 uppercase tracking-wider"
+              >
+                Close Core View
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

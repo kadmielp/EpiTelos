@@ -10,11 +10,13 @@ export interface IAIFunction {
   id: string;
   name: string;
   systemPrompt: string;
+  description?: string;
+  category?: string;
   isCustom?: boolean;
 }
 
 export interface IContextSource {
-  id:string;
+  id: string;
   path: string;
   remark: string;
   type: 'folder' | 'file';
@@ -23,7 +25,7 @@ export interface IContextSource {
   isFolderMarker?: boolean; // Used to identify a folder source in the display list
   isUserAdded?: boolean; // Identifies a source that was directly added by the user.
   // New properties for granular control within folders
-  excludedPaths?: string[]; 
+  excludedPaths?: string[];
   overrideHidden?: { [path: string]: boolean };
 }
 
@@ -37,11 +39,18 @@ export interface TreeNode {
 
 export interface ISettings {
   apiKey: string; // Gemini API Key from env (deprecated)
-  modelSource: 'Gemini' | 'Ollama' | 'OpenAI' | 'Custom';
+  modelSource: 'Gemini' | 'Ollama' | 'OpenAI' | 'Custom' | 'Maritaca';
   preferredModel: string;
+  geminiModel?: string;
+  ollamaModel?: string;
+  openaiModel?: string;
+  maritacaModel?: string;
+  customModel?: string;
   ollamaApiUrl?: string;
   openaiApiKey?: string;
   geminiApiKey?: string;
+  maritacaApiKey?: string;
+  maritacaApiUrl?: string;
   customApiUrl?: string;
   customApiKey?: string;
   defaultFunctionId: string | null;
@@ -55,10 +64,10 @@ export interface ISession {
   lastUserInput: string;
   timestamp: number | null;
   isStreaming?: boolean;
-  removeThinkingTags?: boolean;
+  showReasoning?: boolean;
 }
 
 export type VerificationStatus = {
-    type: 'success' | 'error' | 'verifying';
-    message: string;
+  type: 'success' | 'error' | 'verifying';
+  message: string;
 };

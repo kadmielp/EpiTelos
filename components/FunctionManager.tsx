@@ -35,7 +35,7 @@ export const FunctionManager: React.FC<FunctionManagerProps> = ({ functions, onS
   const customFunctions = functions.filter(f => f.isCustom);
 
   return (
-    <div className="p-6 h-full flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="p-6 h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
       {/* Modern Header with Gradient */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -63,11 +63,11 @@ export const FunctionManager: React.FC<FunctionManagerProps> = ({ functions, onS
               <p className="text-xs text-slate-400">Functions you've created • Stored locally</p>
             </div>
           </div>
-          
+
           <div className="space-y-2 mt-4">
             {customFunctions.length > 0 ? customFunctions.map(func => (
-              <div 
-                key={func.id} 
+              <div
+                key={func.id}
                 className="group flex justify-between items-start bg-gradient-to-br from-slate-700/60 to-slate-800/60 backdrop-blur-sm p-3 rounded-lg border border-slate-600/30 hover:border-blue-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
               >
                 <div className="flex-grow min-w-0 pr-3">
@@ -107,7 +107,7 @@ export const FunctionManager: React.FC<FunctionManagerProps> = ({ functions, onS
             )}
           </div>
         </div>
-        
+
         {/* Built-in Functions Section */}
         <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl p-4 rounded-xl border border-slate-700/50 shadow-2xl">
           <div className="flex items-center gap-2 mb-3">
@@ -117,11 +117,11 @@ export const FunctionManager: React.FC<FunctionManagerProps> = ({ functions, onS
               <p className="text-xs text-slate-400">Pre-configured functions • Read-only</p>
             </div>
           </div>
-          
+
           <div className="space-y-2 mt-4">
             {builtInFunctions.map(func => (
-              <div 
-                key={func.id} 
+              <div
+                key={func.id}
                 className="flex justify-between items-start bg-gradient-to-br from-slate-900/60 to-slate-950/60 backdrop-blur-sm p-3 rounded-lg border border-slate-700/30 hover:border-emerald-500/20 transition-all duration-300"
               >
                 <div className="flex-grow min-w-0">
@@ -176,14 +176,14 @@ export const FunctionManager: React.FC<FunctionManagerProps> = ({ functions, onS
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-700/50">
-            <button 
-              onClick={closeModal} 
+            <button
+              onClick={closeModal}
               className="px-4 py-2 text-sm rounded-lg bg-slate-700/60 hover:bg-slate-600/60 text-white font-semibold transition-all duration-300 border border-slate-600/50 hover:border-slate-500/50"
             >
               Cancel
             </button>
-            <button 
-              onClick={handleSave} 
+            <button
+              onClick={handleSave}
               disabled={!editingFunction?.name || !editingFunction?.systemPrompt}
               className="px-4 py-2 text-sm rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-slate-600 disabled:to-slate-600 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:cursor-not-allowed"
             >

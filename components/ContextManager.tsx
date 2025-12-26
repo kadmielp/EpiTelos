@@ -34,7 +34,7 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
       setIncludeSubfolders(false);
     }
   };
-  
+
   const handleConfirmDelete = () => {
     if (toDelete) {
       removeContexts(toDelete.ids);
@@ -45,28 +45,28 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
   const handleBrowseClick = async () => {
     // @ts-ignore
     if (isDesktop && window.__TAURI__) {
-        // @ts-ignore
-        const result = await window.__TAURI__.dialog.open({
-            directory: newType === 'folder',
-            multiple: false,
-        });
-        if (typeof result === 'string') {
-            const pathParts = result.replace(/\\/g, '/').split('/');
-            const name = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2] || '';
-            setNewPath(result);
-            if (!newRemark) {
-              const remark = newType === 'file' && name.includes('.') ? name.split('.').slice(0, -1).join('.') : name;
-              setNewRemark(remark || name);
-            }
+      // @ts-ignore
+      const result = await window.__TAURI__.dialog.open({
+        directory: newType === 'folder',
+        multiple: false,
+      });
+      if (typeof result === 'string') {
+        const pathParts = result.replace(/\\/g, '/').split('/');
+        const name = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2] || '';
+        setNewPath(result);
+        if (!newRemark) {
+          const remark = newType === 'file' && name.includes('.') ? name.split('.').slice(0, -1).join('.') : name;
+          setNewRemark(remark || name);
         }
+      }
     } else {
       if (webFileInputRef.current) {
-          if (newType === 'folder') {
-              webFileInputRef.current.setAttribute('webkitdirectory', 'true');
-          } else {
-              webFileInputRef.current.removeAttribute('webkitdirectory');
-          }
-          webFileInputRef.current.click();
+        if (newType === 'folder') {
+          webFileInputRef.current.setAttribute('webkitdirectory', 'true');
+        } else {
+          webFileInputRef.current.removeAttribute('webkitdirectory');
+        }
+        webFileInputRef.current.click();
       }
     }
   };
@@ -76,29 +76,29 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
     if (!files || files.length === 0) return;
 
     if (newType === 'folder') {
-        const firstFile = files[0];
-        const pathParts = firstFile.webkitRelativePath.split('/');
-        const folderName = pathParts[0];
-        setNewPath(folderName);
-        if (!newRemark) {
-            setNewRemark(folderName);
-        }
+      const firstFile = files[0];
+      const pathParts = firstFile.webkitRelativePath.split('/');
+      const folderName = pathParts[0];
+      setNewPath(folderName);
+      if (!newRemark) {
+        setNewRemark(folderName);
+      }
     } else { // 'file'
-        const file = files[0];
-        setNewPath(file.name);
-        if (!newRemark) {
-            const nameParts = file.name.split('.');
-            if (nameParts.length > 1) {
-                nameParts.pop();
-            }
-            setNewRemark(nameParts.join('.'));
+      const file = files[0];
+      setNewPath(file.name);
+      if (!newRemark) {
+        const nameParts = file.name.split('.');
+        if (nameParts.length > 1) {
+          nameParts.pop();
         }
+        setNewRemark(nameParts.join('.'));
+      }
     }
     event.target.value = '';
   };
 
   return (
-    <div className="p-6 h-full flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="p-6 h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
       {/* Modern Header with Gradient */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-1.5">
@@ -106,7 +106,7 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
         </h2>
         <div className="h-0.5 w-24 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"></div>
       </div>
-      
+
       {/* Add New Context Section */}
       <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl p-4 rounded-xl mb-4 border border-slate-700/50 shadow-2xl">
         <div className="flex items-center gap-2 mb-3">
@@ -121,38 +121,38 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
         <div className="flex items-center space-x-6 mb-4 p-3 bg-slate-900/50 rounded-lg border border-slate-700/30">
           <span className="text-xs font-semibold text-slate-300 uppercase tracking-wide">Type:</span>
           <label className="flex items-center cursor-pointer group">
-            <input 
-              type="radio" 
-              name="contextType" 
-              value="folder" 
-              checked={newType === 'folder'} 
-              onChange={() => setNewType('folder')} 
-              className="h-4 w-4 bg-slate-700 border-2 border-slate-500 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all" 
+            <input
+              type="radio"
+              name="contextType"
+              value="folder"
+              checked={newType === 'folder'}
+              onChange={() => setNewType('folder')}
+              className="h-4 w-4 bg-slate-700 border-2 border-slate-500 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all"
             />
             <span className="ml-2 text-sm text-slate-200 font-medium group-hover:text-white transition-colors">Folder</span>
           </label>
           <label className="flex items-center cursor-pointer group">
-            <input 
-              type="radio" 
-              name="contextType" 
-              value="file" 
-              checked={newType === 'file'} 
-              onChange={() => setNewType('file')} 
-              className="h-4 w-4 bg-slate-700 border-2 border-slate-500 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all" 
+            <input
+              type="radio"
+              name="contextType"
+              value="file"
+              checked={newType === 'file'}
+              onChange={() => setNewType('file')}
+              className="h-4 w-4 bg-slate-700 border-2 border-slate-500 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all"
             />
             <span className="ml-2 text-sm text-slate-200 font-medium group-hover:text-white transition-colors">File</span>
           </label>
         </div>
-        
+
         {/* Include Subfolders Checkbox */}
         {newType === 'folder' && (
           <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
             <label className="flex items-center cursor-pointer group">
-              <input 
-                type="checkbox" 
-                checked={includeSubfolders} 
-                onChange={e => setIncludeSubfolders(e.target.checked)} 
-                className="h-4 w-4 bg-slate-700 border-2 border-slate-500 text-blue-600 focus:ring-2 focus:ring-blue-500 rounded-md transition-all" 
+              <input
+                type="checkbox"
+                checked={includeSubfolders}
+                onChange={e => setIncludeSubfolders(e.target.checked)}
+                className="h-4 w-4 bg-slate-700 border-2 border-slate-500 text-blue-600 focus:ring-2 focus:ring-blue-500 rounded-md transition-all"
               />
               <span className="ml-2 text-sm text-slate-200 font-medium group-hover:text-white transition-colors">
                 Include subfolders and their files
@@ -234,8 +234,8 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
                 if (isIntermediateFolder) {
                   return (
                     <div className="flex items-center w-full p-2 rounded-lg hover:bg-slate-700/60 transition-all duration-200 group">
-                      <div 
-                        className="flex items-center cursor-pointer select-none flex-grow min-w-0" 
+                      <div
+                        className="flex items-center cursor-pointer select-none flex-grow min-w-0"
                         onClick={(e) => toggleExpand(e)}
                         title={node.id}
                       >
@@ -249,8 +249,8 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
                 // Handle all nodes with a source (user-added files/folders, and derived files)
                 return (
                   <div className={`flex items-center justify-between w-full p-2 rounded-lg transition-all duration-200 group hover:bg-slate-700/60 ${source.isHidden ? 'opacity-50' : ''}`}>
-                    <div 
-                      className="flex items-center cursor-pointer select-none flex-grow min-w-0" 
+                    <div
+                      className="flex items-center cursor-pointer select-none flex-grow min-w-0"
                       onClick={(e) => {
                         // Folder markers are expandable, all other sources (files) are inspectable
                         if (source.isFolderMarker) {
@@ -265,7 +265,7 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
                         {source.isFolderMarker ? 'DIR' : 'FILE'}
                       </span>
                       <p className="text-sm font-medium text-white truncate ml-2 group-hover:text-blue-300 transition-colors">{source.remark}</p>
-                      {source.isFolderMarker && source.includeSubfolders && 
+                      {source.isFolderMarker && source.includeSubfolders &&
                         <span className="text-[10px] text-sky-400 ml-1.5 flex-shrink-0 font-semibold">(+subs)</span>
                       }
                     </div>
@@ -325,14 +325,14 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
               </p>
             </div>
             <div className="flex justify-end space-x-3">
-              <button 
-                onClick={() => setToDelete(null)} 
+              <button
+                onClick={() => setToDelete(null)}
                 className="px-4 py-2 text-sm rounded-lg bg-slate-700/60 hover:bg-slate-600/60 text-white font-semibold transition-all duration-300 border border-slate-600/50 hover:border-slate-500/50"
               >
                 Cancel
               </button>
-              <button 
-                onClick={handleConfirmDelete} 
+              <button
+                onClick={handleConfirmDelete}
                 className="px-4 py-2 text-sm rounded-lg bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
               >
                 Remove

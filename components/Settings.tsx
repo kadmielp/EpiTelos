@@ -2,34 +2,55 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ISettings, IContextSource, IAIFunction, VerificationStatus } from '../types';
 import { RefreshIcon } from './icons/RefreshIcon';
 import { SaveIcon } from './icons/SaveIcon';
+import { ChevronDownIcon } from './icons/ChevronDownIcon';
+import { useRef } from 'react';
 
 interface SettingsProps {
-  isDesktop: boolean;
-  settings: ISettings;
-  updateSettings: (newSettings: Partial<ISettings>) => void;
-  contexts: IContextSource[];
-  functions: IAIFunction[];
-  onExport: () => void;
-  onImport: (eventOrPath: React.ChangeEvent<HTMLInputElement> | string) => void;
-  availableModels: string[];
-  verificationStatus: VerificationStatus | null;
-  verifyAndLoadModels: (source: ISettings['modelSource'], settingsToVerify: ISettings) => void;
+    isDesktop: boolean;
+    settings: ISettings;
+    updateSettings: (newSettings: Partial<ISettings>) => void;
+    contexts: IContextSource[];
+    functions: IAIFunction[];
+    onExport: () => void;
+    onImport: (eventOrPath: React.ChangeEvent<HTMLInputElement> | string) => void;
+    availableModels: string[];
+    verificationStatus: VerificationStatus | null;
+    verifyAndLoadModels: (source: ISettings['modelSource'], settingsToVerify: ISettings) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ 
-    isDesktop, 
-    settings, 
-    updateSettings, 
-    contexts, 
-    functions, 
-    onExport, 
+export const Settings: React.FC<SettingsProps> = ({
+    isDesktop,
+    settings,
+    updateSettings,
+    contexts,
+    functions,
+    onExport,
     onImport,
     availableModels,
     verificationStatus,
     verifyAndLoadModels
 }) => {
-    
+
     const [localSettings, setLocalSettings] = useState<ISettings>(settings);
+    const [isProviderDropdownOpen, setIsProviderDropdownOpen] = useState(false);
+    const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+
+    const providerDropdownRef = useRef<HTMLDivElement>(null);
+    const modelDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Handle click outside for custom dropdowns
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (providerDropdownRef.current && !providerDropdownRef.current.contains(event.target as Node)) {
+                setIsProviderDropdownOpen(false);
+            }
+            if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target as Node)) {
+                setIsModelDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const hasChanges = JSON.stringify(localSettings) !== JSON.stringify(settings);
 
@@ -43,12 +64,26 @@ export const Settings: React.FC<SettingsProps> = ({
     };
 
     const handleSourceChange = (source: ISettings['modelSource']) => {
-        const newSettings = { ...localSettings, modelSource: source, preferredModel: '' };
+        // Look up the previously stored model for this source
+        let rememberedModel = '';
+        switch (source) {
+            case 'Gemini': rememberedModel = localSettings.geminiModel || ''; break;
+            case 'Ollama': rememberedModel = localSettings.ollamaModel || ''; break;
+            case 'OpenAI': rememberedModel = localSettings.openaiModel || ''; break;
+            case 'Maritaca': rememberedModel = localSettings.maritacaModel || ''; break;
+            case 'Custom': rememberedModel = localSettings.customModel || ''; break;
+        }
+
+        const newSettings = {
+            ...localSettings,
+            modelSource: source,
+            preferredModel: rememberedModel
+        };
         setLocalSettings(newSettings);
         // Immediately trigger verification for the new source
         verifyAndLoadModels(source, newSettings);
     };
-    
+
     const handleSave = () => {
         updateSettings(localSettings);
     };
@@ -75,259 +110,363 @@ export const Settings: React.FC<SettingsProps> = ({
         const isSuccess = verificationStatus.type === 'success';
         const isError = verificationStatus.type === 'error';
         const isVerifying = verificationStatus.type === 'verifying';
-        
+
         return (
-            <div className={`mt-2 p-2.5 rounded-lg border transition-all duration-300 text-xs ${
-                isSuccess 
-                    ? 'bg-green-500/10 border-green-500/30 text-green-400' 
-                    : isError 
-                    ? 'bg-red-500/10 border-red-500/30 text-red-400'
-                    : 'bg-slate-700/30 border-slate-600/30 text-slate-400'
-            }`}>
-                <div className="flex items-center gap-2">
+            <div className={`mt-3 p-3 rounded-xl border animate-in fade-in slide-in-from-top-1 transition-all duration-300 text-[11px] font-medium ${isSuccess
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                : isError
+                    ? 'bg-red-500/10 border-red-500/20 text-red-400'
+                    : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                }`}>
+                <div className="flex items-center gap-2.5">
                     {isSuccess && (
-                        <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                         </svg>
                     )}
                     {isError && (
-                        <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     )}
                     {isVerifying && <RefreshIcon className="w-4 h-4 animate-spin flex-shrink-0" />}
-                    <span className="font-medium">{verificationStatus.message}</span>
+                    <span>{verificationStatus.message}</span>
                 </div>
             </div>
         );
     };
 
     return (
-        <div className="p-6 h-full flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-            {/* Modern Header with Gradient */}
-            <div className="mb-6">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-1.5">
-                    Settings
-                </h2>
-                <div className="h-0.5 w-24 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"></div>
+        <div className="h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-200 selection:bg-blue-500/30 overflow-hidden relative">
+            {/* Premium Gradient Backgrounds Overlay */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+                <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
             </div>
 
-            <div className="flex-grow overflow-y-auto custom-scrollbar">
-                {/* Single Unified Section */}
-                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl p-6 rounded-xl border border-slate-700/50 shadow-2xl space-y-6">
-                    
-                    {/* Model Source Selector */}
+            {/* Header Area */}
+            <div className="z-10 px-8 py-6 border-b border-white/5 flex items-center justify-between bg-slate-900/40 backdrop-blur-md">
+                <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
                     <div>
-                        <label className="block text-xs font-semibold text-slate-200 mb-2 uppercase tracking-wide">
-                            Model Source
-                        </label>
-                        <select
-                            value={localSettings.modelSource}
-                            onChange={e => handleSourceChange(e.target.value as ISettings['modelSource'])}
-                            className="w-full max-w-md bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:bg-slate-800 cursor-pointer shadow-lg"
-                        >
-                            <option>Gemini</option>
-                            <option>Ollama</option>
-                            <option>OpenAI</option>
-                            <option>Custom</option>
-                        </select>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Environment configuration</h2>
+                        <h1 className="text-xl font-bold text-white tracking-tight">System Settings</h1>
                     </div>
-                    
-                    {/* Gemini Settings */}
-                    {localSettings.modelSource === 'Gemini' && (
-                        <div className="p-4 bg-slate-900/60 rounded-lg border border-slate-700/30 space-y-3">
-                            <label className="block text-xs font-semibold text-slate-200 uppercase tracking-wide">
-                                Gemini API Key
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <input 
-                                    type="password" 
-                                    value={localSettings.geminiApiKey || ''} 
-                                    onChange={e => handleLocalSettingsChange({ geminiApiKey: e.target.value })} 
-                                    className="flex-grow bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:bg-slate-800 placeholder:text-slate-500" 
-                                    placeholder="AIzaSy..." 
-                                />
-                                <button 
-                                    onClick={() => verifyAndLoadModels('Gemini', localSettings)} 
-                                    disabled={verificationStatus?.type === 'verifying'} 
-                                    className="p-2.5 bg-slate-700/60 hover:bg-slate-600/60 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-600/50 hover:border-slate-500/50 shadow-lg hover:scale-105 active:scale-95"
-                                    title="Verify connection"
-                                >
-                                    <RefreshIcon className={`w-5 h-5 text-slate-300 ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
-                                </button>
-                            </div>
-                            {renderVerificationStatus()}
-                        </div>
+                </div>
+                <div className="flex gap-2.5">
+                    <button
+                        onClick={onExport}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-[11px] font-bold uppercase tracking-wider text-slate-300"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        Export
+                    </button>
+                    <button
+                        onClick={handleImportClick}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-[11px] font-bold uppercase tracking-wider text-slate-300"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Import
+                    </button>
+                    {!isDesktop && (
+                        <input
+                            type="file"
+                            id="import-profile-input"
+                            accept=".json"
+                            className="hidden"
+                            onChange={(e) => onImport(e as React.ChangeEvent<HTMLInputElement>)}
+                        />
                     )}
+                </div>
+            </div>
 
-                    {/* Ollama Settings */}
-                    {localSettings.modelSource === 'Ollama' && (
-                       <div className="p-4 bg-slate-900/60 rounded-lg border border-slate-700/30 space-y-3">
-                            <label className="block text-xs font-semibold text-slate-200 uppercase tracking-wide">
-                                Ollama API Base URL
-                            </label>
-                            <div className="flex items-center gap-2">
-                                 <input 
-                                    type="text" 
-                                    value={localSettings.ollamaApiUrl} 
-                                    onChange={e => handleLocalSettingsChange({ ollamaApiUrl: e.target.value })} 
-                                    className="flex-grow bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:bg-slate-800 placeholder:text-slate-500" 
-                                    placeholder="http://localhost:11434" 
-                                />
-                                 <button 
-                                    onClick={() => verifyAndLoadModels('Ollama', localSettings)} 
-                                    disabled={verificationStatus?.type === 'verifying'} 
-                                    className="p-2.5 bg-slate-700/60 hover:bg-slate-600/60 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-600/50 hover:border-slate-500/50 shadow-lg hover:scale-105 active:scale-95"
-                                    title="Verify connection"
-                                >
-                                    <RefreshIcon className={`w-5 h-5 text-slate-300 ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
-                                 </button>
-                            </div>
-                            {renderVerificationStatus()}
-                       </div>
-                    )}
-                    
-                    {/* OpenAI Settings */}
-                    {localSettings.modelSource === 'OpenAI' && (
-                        <div className="p-4 bg-slate-900/60 rounded-lg border border-slate-700/30 space-y-3">
-                            <label className="block text-xs font-semibold text-slate-200 uppercase tracking-wide">
-                                OpenAI API Key
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <input 
-                                    type="password" 
-                                    value={localSettings.openaiApiKey || ''} 
-                                    onChange={e => handleLocalSettingsChange({ openaiApiKey: e.target.value })} 
-                                    className="flex-grow bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:bg-slate-800 placeholder:text-slate-500" 
-                                    placeholder="sk-..." 
-                                />
-                                <button 
-                                    onClick={() => verifyAndLoadModels('OpenAI', localSettings)} 
-                                    disabled={verificationStatus?.type === 'verifying'} 
-                                    className="p-2.5 bg-slate-700/60 hover:bg-slate-600/60 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-600/50 hover:border-slate-500/50 shadow-lg hover:scale-105 active:scale-95"
-                                    title="Verify connection"
-                                >
-                                    <RefreshIcon className={`w-5 h-5 text-slate-300 ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
-                                </button>
-                            </div>
-                            {renderVerificationStatus()}
+            <div className="flex-grow overflow-y-auto custom-scrollbar z-10 p-8">
+                <div className="max-w-4xl mx-auto space-y-8">
+                    {/* Model Provider Section */}
+                    <section className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Intelligence Provider</label>
+                            <div className="h-px bg-white/5 flex-grow" />
                         </div>
-                    )}
-                    
-                    {/* Custom Provider Settings */}
-                    {localSettings.modelSource === 'Custom' && (
-                        <div className="p-4 bg-slate-900/60 rounded-lg border border-slate-700/30 space-y-3">
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Custom Intelligence Provider Dropdown */}
                             <div className="space-y-2">
-                                <label className="block text-xs font-semibold text-slate-200 uppercase tracking-wide">
-                                    Base URL
-                                </label>
-                                <input 
-                                    type="text" 
-                                    value={localSettings.customApiUrl || ''} 
-                                    onChange={e => handleLocalSettingsChange({ customApiUrl: e.target.value })} 
-                                    className="w-full bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:bg-slate-800 placeholder:text-slate-500" 
-                                    placeholder="https://api.example.com" 
-                                />
-                                <p className="text-xs text-slate-500">OpenAI-compatible API base URL (without '/v1')</p>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="block text-xs font-semibold text-slate-200 uppercase tracking-wide">
-                                    API Key
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    <input 
-                                        type="password" 
-                                        value={localSettings.customApiKey || ''} 
-                                        onChange={e => handleLocalSettingsChange({ customApiKey: e.target.value })} 
-                                        className="flex-grow bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:bg-slate-800 placeholder:text-slate-500" 
-                                        placeholder="Enter API Key" 
-                                    />
-                                    <button 
-                                        onClick={() => verifyAndLoadModels('Custom', localSettings)} 
-                                        disabled={verificationStatus?.type === 'verifying'} 
-                                        className="p-2.5 bg-slate-700/60 hover:bg-slate-600/60 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-600/50 hover:border-slate-500/50 shadow-lg hover:scale-105 active:scale-95"
-                                        title="Verify connection"
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Selection</p>
+                                <div ref={providerDropdownRef} className="relative">
+                                    <button
+                                        onClick={() => setIsProviderDropdownOpen(!isProviderDropdownOpen)}
+                                        className="w-full bg-slate-900/60 border border-white/10 rounded-2xl p-3.5 text-sm text-white flex items-center justify-between hover:bg-slate-800/60 transition-all outline-none focus:border-blue-500/50"
                                     >
-                                        <RefreshIcon className={`w-5 h-5 text-slate-300 ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
+                                        <span className="font-medium">{localSettings.modelSource}</span>
+                                        <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isProviderDropdownOpen ? 'rotate-180' : ''}`} />
                                     </button>
+                                    {isProviderDropdownOpen && (
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-top-1">
+                                            <div className="p-1.5">
+                                                {['Gemini', 'Ollama', 'OpenAI', 'Maritaca', 'Custom'].map(source => (
+                                                    <button
+                                                        key={source}
+                                                        onClick={() => { handleSourceChange(source as ISettings['modelSource']); setIsProviderDropdownOpen(false); }}
+                                                        className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold transition-all mb-0.5 last:mb-0 ${localSettings.modelSource === source ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}
+                                                    >
+                                                        {source}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                {renderVerificationStatus()}
+                            </div>
+
+                            {/* Custom Preferred Model Dropdown */}
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Preferred Model</p>
+                                <div ref={modelDropdownRef} className="relative">
+                                    <button
+                                        onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                                        disabled={availableModels.length === 0 && verificationStatus?.type !== 'verifying'}
+                                        className="w-full bg-slate-900/60 border border-white/10 rounded-2xl p-3.5 text-sm text-white flex items-center justify-between hover:bg-slate-800/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed outline-none focus:border-blue-500/50"
+                                    >
+                                        <span className="font-medium truncate pr-4">
+                                            {availableModels.length > 0
+                                                ? localSettings.preferredModel
+                                                : (verificationStatus?.type === 'verifying' ? 'Loading models...' : 'Verify to load models')}
+                                        </span>
+                                        <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    {isModelDropdownOpen && availableModels.length > 0 && (
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-top-1">
+                                            <div className="max-h-60 overflow-y-auto custom-scrollbar p-1.5">
+                                                {availableModels.map(model => (
+                                                    <button
+                                                        key={model}
+                                                        onClick={() => {
+                                                            const sourceField = `${localSettings.modelSource.toLowerCase()}Model` as keyof ISettings;
+                                                            handleLocalSettingsChange({
+                                                                preferredModel: model,
+                                                                [sourceField]: model
+                                                            });
+                                                            setIsModelDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold transition-all mb-0.5 last:mb-0 ${localSettings.preferredModel === model ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}
+                                                    >
+                                                        {model}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    )}
+                    </section>
 
-                    {/* Preferred Model Dropdown */}
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-200 mb-2 uppercase tracking-wide">
-                            Preferred Model
-                        </label>
-                        <select
-                            value={localSettings.preferredModel}
-                            onChange={e => handleLocalSettingsChange({ preferredModel: e.target.value })}
-                            disabled={availableModels.length === 0 && verificationStatus?.type !== 'verifying'}
-                            className="w-full max-w-md bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:bg-slate-800 disabled:bg-slate-900/50 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-lg"
-                        >
-                            {availableModels.length > 0 ? (
-                                availableModels.map(model => <option key={model} value={model}>{model}</option>)
-                            ) : (
-                                <option>{verificationStatus?.type === 'verifying' ? 'Loading models...' : 'Verify connection to load models'}</option>
+                    {/* Authentication & Connectivity Section */}
+                    <section className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Connectivity & AUTH</label>
+                            <div className="h-px bg-white/5 flex-grow" />
+                        </div>
+
+                        <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-3xl p-6 shadow-2xl">
+                            {/* Gemini Settings */}
+                            {localSettings.modelSource === 'Gemini' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-slate-300 ml-1">Gemini API Key</label>
+                                        <div className="flex gap-3">
+                                            <input
+                                                type="password"
+                                                value={localSettings.geminiApiKey || ''}
+                                                onChange={e => handleLocalSettingsChange({ geminiApiKey: e.target.value })}
+                                                className="flex-grow bg-slate-950/50 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all font-mono"
+                                                placeholder="Enter your API key"
+                                            />
+                                            <button
+                                                onClick={() => verifyAndLoadModels('Gemini', localSettings)}
+                                                disabled={verificationStatus?.type === 'verifying'}
+                                                className="px-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-white/5 transition-all flex items-center gap-2 group shadow-xl"
+                                                title="Verify connection"
+                                            >
+                                                <RefreshIcon className={`w-4 h-4 group-hover:text-blue-400 transition-colors ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Verify</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {renderVerificationStatus()}
+                                </div>
                             )}
-                        </select>
+
+                            {/* Ollama Settings */}
+                            {localSettings.modelSource === 'Ollama' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-slate-300 ml-1">Ollama API Base URL</label>
+                                        <div className="flex gap-3">
+                                            <input
+                                                type="text"
+                                                value={localSettings.ollamaApiUrl}
+                                                onChange={e => handleLocalSettingsChange({ ollamaApiUrl: e.target.value })}
+                                                className="flex-grow bg-slate-950/50 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all"
+                                                placeholder="http://localhost:11434"
+                                            />
+                                            <button
+                                                onClick={() => verifyAndLoadModels('Ollama', localSettings)}
+                                                disabled={verificationStatus?.type === 'verifying'}
+                                                className="px-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-white/5 transition-all flex items-center gap-2 group shadow-xl"
+                                            >
+                                                <RefreshIcon className={`w-4 h-4 group-hover:text-blue-400 transition-colors ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Verify</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {renderVerificationStatus()}
+                                </div>
+                            )}
+
+                            {/* OpenAI Settings */}
+                            {localSettings.modelSource === 'OpenAI' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-slate-300 ml-1">OpenAI API Key</label>
+                                        <div className="flex gap-3">
+                                            <input
+                                                type="password"
+                                                value={localSettings.openaiApiKey || ''}
+                                                onChange={e => handleLocalSettingsChange({ openaiApiKey: e.target.value })}
+                                                className="flex-grow bg-slate-950/50 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all font-mono"
+                                                placeholder="sk-..."
+                                            />
+                                            <button
+                                                onClick={() => verifyAndLoadModels('OpenAI', localSettings)}
+                                                disabled={verificationStatus?.type === 'verifying'}
+                                                className="px-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-white/5 transition-all flex items-center gap-2 group shadow-xl"
+                                            >
+                                                <RefreshIcon className={`w-4 h-4 group-hover:text-blue-400 transition-colors ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Verify</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {renderVerificationStatus()}
+                                </div>
+                            )}
+
+                            {/* Maritaca Settings */}
+                            {localSettings.modelSource === 'Maritaca' && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-slate-300 ml-1">Maritaca API Key</label>
+                                        <div className="flex gap-3">
+                                            <input
+                                                type="password"
+                                                value={localSettings.maritacaApiKey || ''}
+                                                onChange={e => handleLocalSettingsChange({ maritacaApiKey: e.target.value })}
+                                                className="flex-grow bg-slate-950/50 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all font-mono"
+                                                placeholder="Enter your API key"
+                                            />
+                                            <button
+                                                onClick={() => verifyAndLoadModels('Maritaca', localSettings)}
+                                                disabled={verificationStatus?.type === 'verifying'}
+                                                className="px-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-white/5 transition-all flex items-center gap-2 group shadow-xl"
+                                                title="Verify connection"
+                                            >
+                                                <RefreshIcon className={`w-4 h-4 group-hover:text-blue-400 transition-colors ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Verify</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {renderVerificationStatus()}
+                                </div>
+                            )}
+
+                            {/* Custom Provider Settings */}
+                            {localSettings.modelSource === 'Custom' && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-semibold text-slate-300 ml-1">Base URL</label>
+                                            <input
+                                                type="text"
+                                                value={localSettings.customApiUrl || ''}
+                                                onChange={e => handleLocalSettingsChange({ customApiUrl: e.target.value })}
+                                                className="w-full bg-slate-950/50 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all"
+                                                placeholder="https://api.example.com"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-semibold text-slate-300 ml-1">API Key</label>
+                                            <div className="flex gap-3">
+                                                <input
+                                                    type="password"
+                                                    value={localSettings.customApiKey || ''}
+                                                    onChange={e => handleLocalSettingsChange({ customApiKey: e.target.value })}
+                                                    className="flex-grow bg-slate-950/50 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all font-mono"
+                                                    placeholder="Enter API Key"
+                                                />
+                                                <button
+                                                    onClick={() => verifyAndLoadModels('Custom', localSettings)}
+                                                    disabled={verificationStatus?.type === 'verifying'}
+                                                    className="px-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-white/5 transition-all flex items-center gap-2 group shadow-xl"
+                                                >
+                                                    <RefreshIcon className={`w-4 h-4 group-hover:text-blue-400 transition-colors ${verificationStatus?.type === 'verifying' ? 'animate-spin' : ''}`} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {renderVerificationStatus()}
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            {/* Action Footer */}
+            <div className="z-10 p-6 border-t border-white/[0.08] bg-slate-950/80 backdrop-blur-3xl flex items-center justify-center">
+                <div className="max-w-4xl w-full flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        {hasChanges ? (
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Unsaved Changes</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Settings Synced</span>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="pt-4 border-t border-slate-700/50 flex flex-wrap gap-3">
-                        <button
-                            onClick={handleSave}
-                            disabled={!hasChanges}
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2.5 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 flex items-center gap-2"
-                        >
-                            <SaveIcon className="w-4 h-4" />
-                            Save Settings
-                        </button>
-                        
-                        <button 
-                            onClick={onExport} 
-                            className="bg-slate-700/60 hover:bg-slate-600/60 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-300 border border-slate-600/50 hover:border-slate-500/50 shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
-                            Export
-                        </button>
-                        
-                        <button 
-                            onClick={handleImportClick} 
-                            className="bg-slate-700/60 hover:bg-slate-600/60 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-300 border border-slate-600/50 hover:border-slate-500/50 shadow-lg hover:scale-105 active:scale-95 flex items-center gap-2"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                            </svg>
-                            Import
-                        </button>
-                        
-                        {!isDesktop && (
-                             <input 
-                                type="file" 
-                                id="import-profile-input" 
-                                accept=".json" 
-                                className="hidden" 
-                                onChange={(e) => onImport(e as React.ChangeEvent<HTMLInputElement>)} 
-                            />
-                        )}
-                        
-                        {hasChanges && (
-                            <span className="text-xs text-blue-400 self-center ml-2">Unsaved changes</span>
-                        )}
-                    </div>
+                    <button
+                        onClick={handleSave}
+                        disabled={!hasChanges}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-black py-3 px-8 rounded-2xl flex items-center gap-3 hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] disabled:opacity-30 disabled:grayscale transition-all active:scale-[0.98] text-xs uppercase tracking-widest"
+                    >
+                        <SaveIcon className="w-4 h-4" />
+                        Commit Changes
+                    </button>
                 </div>
             </div>
 
             <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15,23,42,0.3); border-radius:10px }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, rgb(71,85,105), rgb(51,65,85)); border-radius:10px }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, rgb(59,130,246), rgb(147,51,234)); }
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 20px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.3); }
+
+                @keyframes slide-in-from-top-1 { from { transform: translateY(-4px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+                @keyframes slide-in-from-top-2 { from { transform: translateY(-12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+                
+                .animate-in { animation: 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+                .fade-in { animation-name: fade-in; }
+                .slide-in-from-top-1 { animation-name: slide-in-from-top-1; }
+                .slide-in-from-top-2 { animation-name: slide-in-from-top-2; }
             `}</style>
         </div>
     );

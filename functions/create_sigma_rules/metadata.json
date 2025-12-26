@@ -1,0 +1,5 @@
+{
+  "description": "Convert security news or TTPs into Sigma detection rules for SIEM.",
+  "category": "Security & Technical",
+  "name": "Create Sigma Rules"
+}

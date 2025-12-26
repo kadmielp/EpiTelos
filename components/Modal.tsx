@@ -37,19 +37,19 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 transition-opacity"
       onClick={handleBackdropClick}
     >
-      <div 
+      <div
         className="bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-4xl m-4 transform transition-all scale-100"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">{title}</h2>
           {onClose && (
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               className="p-1 text-slate-400 rounded-full hover:bg-slate-700 hover:text-white transition-colors"
               aria-label="Close modal"
             >

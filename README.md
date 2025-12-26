@@ -25,10 +25,12 @@ With EpiTelos, you can gain clarity and grow using your own life as context. For
 ## ✨ Core Features
 
 ### 1. Run AI
-- **Execute AI Functions**: Run pre-defined or custom AI functions that provide specific analysis or guidance.
+- **Searchable AI Functions**: Quickly find the perfect function by typing keywords to filter by name, category, or description.
+- **Categorized Discovery**: Functions are organized into logical groups like "Career Development", "Strategy", and "Personal Growth".
+- **System Prompt Inspection**: Transparency by design—click the eye icon to inspect the underlying instructions for any function.
 - **Resizable Layout**: Adjust the width of the configuration and response panels for a customized workspace on larger screens.
 - **Dynamic Context**: Select which files and folders to provide as context for each run.
-- **Hierarchical View**: Context sources are displayed in a collapsible tree view, making it easy to manage nested folders and select entire directories at once.
+- **Hierarchical Tree Selection**: Context sources are displayed in a collapsible tree view, making it easy to manage nested directories.
 - **Save Output**: Save the AI's response as a timestamped Markdown file for future reference.
 
 ### 2. Context Manager
@@ -42,14 +44,16 @@ With EpiTelos, you can gain clarity and grow using your own life as context. For
 - **Edit & Delete**: Modify and manage your custom functions.
 - **Secure Storage**: Custom functions are stored safely in your user application data directory.
 
-### 4. Flexible Model Support
-EpiTelos supports multiple AI model providers, giving you full control over cost, privacy, and capability. All providers work seamlessly in both web and desktop environments.
-- **Ollama**: Connect to your own local models for maximum privacy. The app can auto-discover your installed models. ✅ **Fully supported in desktop builds**.
-- **Custom Provider**: Connect to any OpenAI-compatible API endpoint (Maritaca AI, Anthropic Claude, etc.) by providing a Base URL and API Key. ✅ **Fully supported in desktop builds**.
-- **OpenAI**: Use popular models like GPT-4o by providing your API key.
-- **Gemini**: Connect using your Gemini API key through the Settings interface. ✅ **Fully supported in desktop builds**.
+### 4. Flexible Model Support & Intelligence Memory
+EpiTelos supports multiple AI model providers, giving you full control over cost, privacy, and capability.
+- **Provider-Specific Memory**: The system remembers your preferred model for each provider. Switching from OpenAI to Ollama (and back) automatically restores your last-used model for that source.
+- **Dynamic Model Fetching**: Deeply integrated discovery of available models after successful connection verification.
+- **Multi-Source Architecture**: Full support for Ollama, Maritaca AI, OpenAI, Gemini, and Custom OpenAI-compatible endpoints.
+- **Environmental Parity**: All providers work seamlessly in both web and desktop environments.
 
-### 5. Session & Profile Management
+### 5. Premium Configuration & Session Management
+- **Redesigned Settings**: A modern, glassmorphic layout with custom dropdowns and real-time connectivity feedback.
+- **State Awareness**: Visible "Unsaved Changes" and "Settings Synced" indicators in the configuration footer.
 - **Session Persistence**: The app remembers your last session, prompting you to resume where you left off or start fresh.
 - **Import/Export Profile**: Save your complete configuration (settings, context list) to a JSON file and import it on another machine or browser.
 
@@ -61,17 +65,22 @@ EpiTelos supports multiple AI model providers, giving you full control over cost
 
 ## 🧑‍💻 Development Guide
 
-### Adding a New Built-in Function
-
 The application's build process automatically discovers built-in functions. This makes adding new ones simple and removes the need to manually edit manifest files.
 
-To add a new built-in function that will be packaged with the app:
+To add a new built-in function:
 
-1.  **Create the Function Directory**: Add a new folder inside `public/functions/`. The folder name will serve as the function's unique `id` and will be used to generate its display name. Use underscores for spaces (e.g., `my_new_function`).
+1.  **Create the Function Directory**: Add a folder inside `public/functions/` (e.g., `my_new_function`).
+2.  **Create the System Prompt**: Create `system.md` inside that directory with the AI instructions.
+3.  **Add Metadata (Optional)**: Create `metadata.json` to define a pretty name, description, and category:
+    ```json
+    {
+      "name": "My Pretty Name",
+      "description": "Clear explanation of what this does.",
+      "category": "My Category"
+    }
+    ```
 
-2.  **Create the System Prompt**: Inside your new directory, create a single file named `system.md`. This Markdown file should contain the complete system prompt for the AI.
-
-That's it! The next time you run `npm run dev` or `npm run build`, a script will automatically detect your new folder, generate the function's properties (`id`, `name`, `systemPrompt`), and include it in a `public/built-in-functions.json` file that the application uses at runtime.
+That's it! The next time you run `npm run dev` or `npm run build`, the discovery script will automatically include it in the searchable manifest.
 
 - **Folder Name**: `my_new_function`
 - **Generates ID**: `my_new_function`
@@ -116,3 +125,8 @@ Follow these steps in your terminal to build the application:
     **Note:** While this command creates a distributable application, EpiTelos is currently a high-fidelity prototype and is **not considered production-ready**.
 
     After the build completes, you will find the installer for your application in the `src-tauri/target/release/` directory.
+
+## ⚠️ Disclaimer
+
+EpiTelos is provided "as is", without warranty of any kind, express or implied. In no event shall the authors be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software. Use this tool at your own risk.
+

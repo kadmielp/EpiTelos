@@ -36,18 +36,41 @@ const main = () => {
 
         if (fs.existsSync(systemMdPath)) {
           const systemPrompt = fs.readFileSync(systemMdPath, 'utf-8');
-          const functionName = toTitleCase(functionId);
+          let functionName = toTitleCase(functionId);
+
+          let description = undefined;
+          let category = undefined;
+          const metadataPath = path.join(functionsDir, functionId, 'metadata.json');
+          if (fs.existsSync(metadataPath)) {
+            try {
+              const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
+              // Use name from metadata if exists, otherwise title case the ID
+              if (metadata.name) {
+                functionName = metadata.name;
+              }
+              if (metadata.description) {
+                description = metadata.description;
+              }
+              if (metadata.category) {
+                category = metadata.category;
+              }
+            } catch (e) {
+              console.warn(`Failed to parse metadata.json for ${functionId}:`, e);
+            }
+          }
 
           builtInFunctions.push({
             id: functionId,
             name: functionName,
             systemPrompt: systemPrompt,
+            description: description,
+            category: category,
             isCustom: false,
           });
         }
       }
     }
-    
+
     // Sort functions alphabetically by name for a consistent order
     builtInFunctions.sort((a, b) => a.name.localeCompare(b.name));
 

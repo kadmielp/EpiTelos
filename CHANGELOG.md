@@ -5,6 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
+## [1.3.0] - 2025-12-27
+
+### Added
+- **Provider Model Memory**: The settings system now remembers your preferred model for each individual provider. Switching between Gemini, Ollama, OpenAI, etc., will automatically restore the last used model for that specific source.
+- **Enhanced Settings Status**: Added real-time "Unsaved Changes" and "Settings Synced" indicators in the settings footer for better configuration state awareness.
+
+### Changed
+- **Settings UI Overhaul**: Complete visual redesign of the Settings panel with a modern glassmorphic aesthetic, custom dropdowns, and improved layout for API keys and connectivity settings.
+- **Control Hub UI Refinement**: Unified the bottom action bar color with the rest of the configuration panel and added a subtle light aesthetic divider for a cleaner, more premium look.
+- **Custom Dropdowns**: Replaced standard HTML select elements in Settings with custom-built, high-fidelity dropdowns for a consistent premium experience.
+- **Action Button Branding**: Renamed "Initialize Intelligence" to "Run AI" for a more direct and intuitive experience.
+- **Function Selection UI**: Unified the function dropdown and description box into a connected card component. Removed the redundant brain icon and moved category tags to the right side for better scannability.
+- **Compact Layout Optimization**: Significantly reduced vertical footprint by tightening section spacing, reducing the custom instructions textarea height, and compacting the action footer controls.
+- **Visual Polish**: Removed the vertical divider line for a more open feel and ensured the panel collapse toggle remains always accessible.
+- **Contextual Tooltips**: Added helpful tooltips to toggles like "Show Reasoning" (e.g., "For reasoning models") to guide users.
+
+### Removed
+- **Floating Indicators**: Removed the bouncing "Live Stream" indicator to reduce visual distraction during active streaming sessions.
+
+## [1.2.3] - 2025-12-26
+
+### Changed
+- **Terminology Update**: Renamed "Compact Mode" to "Show Reasoning" for better clarity on AI behavior.
+- **Intuitive Defaults**: Reasoning is now hidden by default, aligning with professional AI interaction standards.
+- **Visual Consistency**: Synchronized the background colors of the Function Runner and configuration panels with the sidebar's slate-900 gradient for a seamless interface.
+- **Optimized Layout**: Moved the Model Selector from the header to the bottom action bar, grouping all session-specific controls (Stream, Reasoning, Model) in one intuitive location.
+- **Refined Controls**: Improved the toggle switch design with better sizing and alignment in the footer.
+
+## [1.2.1] - 2025-12-26
+
+### Added
+- **Maritaca AI Support**: Integrated Maritaca AI as a dedicated provider in settings. Includes automatic base URL configuration, API key management, and dynamic fetching of Sabiá models.
+- **Dedicated Maritaca Service**: Implemented a specialized service to handle Maritaca's API, ensuring compatibility with its unique endpoints and providing a smoother user experience.
+
+## [1.2.0] - 2025-12-26
+
+### Added
+- **Searchable Function Dropdown**: Replaced the standard HTML select with a custom, searchable dropdown. Users can now type keywords to instantly filter through functions by name, category, or description.
+- **System Prompt Inspection**: Added an "External Link" icon to function descriptions, allowing users to view the underlying system prompt for any AI function in a clean, scrollable modal.
+- **Enhanced Categorization**: All 43 built-in functions are now organized into 7 distinct categories (e.g., "Career Development", "Personal Growth", "Business & Strategy") for better discoverability.
+- **Metadata Support**: Implemented `metadata.json` for all functions to support custom names, descriptions, and categories.
+
+### Changed
+- **Default State**: Added a "Choose your function..." empty state to the AI Function selector to prevent accidental execution of the first item.
+- **Improved Function Names**: Standardized capitalization and clarity across all built-in function names (e.g., fixed "CV", "PRD", "LOE" acronyms).
+- **Consolidated Categories**: Combined "Career" and "Career & Personal Growth" into a single, comprehensive "Career Development" category.
+- **Privacy & Terminology**: Removed all specific project terminology from system prompts for a more professional and generic experience.
+
+### Fixed
+- **Metadata Loading**: Resolved an issue where function names from `metadata.json` were being ignored in favor of title-cased folder names.
+- **Category Filter Logic**: Fixed mapping of various career-related functions to ensure consistent categorization.
+
 ## [1.1.3] - 2025-11-02
 
 ### Fixed
@@ -126,9 +178,11 @@ This release marks the transition from a high-fidelity web prototype to a featur
     - On startup, prompt the user to "Resume Last Session" or "Start New Session".
     - Session state (last used function, inputs, etc.) is saved automatically.
 - **Multi-Provider AI Support**:
-    - Added support for **Ollama**, allowing connection to local models.
-    - Added support for **OpenAI**, allowing use of models like GPT-4.
-    - Added support for a **Custom Provider**, allowing connection to any OpenAI-compatible API endpoint.
+    - Added support for **Ollama**, allowing connection to local models. ✅ **Fully supported in desktop builds**.
+    - **Maritaca AI**: Connect to the Sabiá family of models with a dedicated interface. ✅ **Fully supported in desktop builds**.
+    - **OpenAI**: Use popular models like GPT-4o by providing your API key.
+    - **Gemini**: Connect using your Gemini API key through the Settings interface. ✅ **Fully supported in desktop builds**.
+    - **Custom Provider**: Connect to any OpenAI-compatible API endpoint (Anthropic Claude, etc.) by providing a Base URL and API Key. ✅ **Fully supported in desktop builds**.
 - **Dynamic Model Fetching**:
     - The Settings view now dynamically fetches available models from the selected provider (Ollama, OpenAI, Custom) after successful connection verification.
 - **Sample Content**:
