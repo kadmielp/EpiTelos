@@ -146,7 +146,7 @@ const useAppLogic = () => {
       switch (source) {
         case 'Gemini':
           result = await geminiService.verifyConnection(settingsToVerify.geminiApiKey || '');
-          if (result.success) models = await geminiService.getModels();
+          if (result.success) models = await geminiService.getModels(settingsToVerify.geminiApiKey || '');
           break;
         case 'OpenAI':
           result = await openaiService.verifyConnection(settingsToVerify.openaiApiKey || '');

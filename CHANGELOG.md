@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
+## [1.5.7] - 2025-12-27
+
+### Added
+- **Mermaid Diagram Support**: Integrated live-rendered Mermaid diagrams (flowcharts, sequence diagrams, Gantt charts) with premium dark theme styling and backdrop-blur containers.
+- **Dynamic Gemini Model Retrieval**: Removed hardcoded whitelists. The app now fetches all available Gemini models directly from Google's API in real-time.
+- **Quota-Aware Verification**: Replaced dummy generation calls with metadata-only connection checks for Gemini, OpenAI, Maritaca, and Custom providers to preserve API generation quotas.
+- **Interactive Diagram Indicators**: Added subtle "Interactive Diagram" tags and hover effects to rendered Mermaid assets.
+
+### Changed
+- **Performance Optimization**: Memoized critical UI components (`MermaidDiagram`, `ThinkingBlock`, `Markdown`) and component configurations to eliminate flickering during user interactions.
+- **Intelligent Auto-Scroll**: Refined scroll behavior to only trigger on new content during active streaming, preventing unwanted jumps when switching settings or models.
+- **Robust Model Mapping**: Implemented a two-tier extraction logic for Gemini models to ensure compatibility across different SDK versions and environments.
+- **Unified Provider Keys**: Standardized API key passing across all dynamic model retrieval services for better session reliability.
+
+### Fixed
+- **Mermaid Syntax Flicker**: Resolved issue where incomplete Mermaid code blocks during streaming would cause repeating "Syntax Error" UI blocks.
+- **Gemini List Models**: Fixed a regression that caused empty model lists when switching from static constant declarations to dynamic fetching.
+- **Unused Constants**: Cleaned up deprecated model lists and hardcoded examples from `constants.ts`.
+
+
 ## [1.5.0] - 2025-12-27
 
 ### Added

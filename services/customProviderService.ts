@@ -132,63 +132,98 @@ export async function* runCustomProviderFunctionStream({ systemPrompt, userPromp
 
   // @ts-ignore
   if (window.__TAURI__) {
-    console.log("🦀 Using Tauri HTTP client for custom provider streaming");
+    console.log("🦀 Using custom Rust streamer for custom provider (true streaming)");
+    const requestId = `custom-${Date.now()}`;
+    const chunks: string[] = [];
+    let isDone = false;
+    let error: string | null = null;
+    let resolver: ((v: any) => void) | null = null;
+
+    // @ts-ignore
+    const unlisten = await window.__TAURI__.event.listen('ai-chunk', (event) => {
+      const payload = event.payload;
+      if (payload.id !== requestId) return;
+
+      if (payload.error) {
+        error = payload.error;
+        if (resolver) resolver({ done: true });
+      } else if (payload.done) {
+        isDone = true;
+        if (resolver) resolver({ done: true });
+      } else if (payload.chunk) {
+        chunks.push(payload.chunk);
+        if (resolver) {
+          const r = resolver;
+          resolver = null;
+          r({ value: chunks.shift(), done: false });
+        }
+      }
+    });
 
     try {
       // @ts-ignore
-      const { fetch: tauriFetch, ResponseType } = window.__TAURI__.http;
-
-      // Make the streaming request
-      const response = await tauriFetch(fullApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: {
-          type: 'Json',
-          payload: requestBody
-        },
-        responseType: ResponseType.Text // Get raw text to handle streaming format
+      await window.__TAURI__.invoke('stream_ai_request', {
+        request: {
+          id: requestId,
+          url: fullApiUrl,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: requestBody
+        }
       });
 
-      if (response.status !== 200) {
-        const errorMessage = response.data?.error?.message || 'An unknown error occurred';
-        throw new Error(`Custom provider API stream request failed with status ${response.status}: ${errorMessage}`);
-      }
+      let buffer = '';
+      while (true) {
+        if (signal?.aborted) {
+          console.log("🛑 Abort signal received, stopping custom provider request:", requestId);
+          // @ts-ignore
+          await window.__TAURI__.invoke('stop_ai_request', { id: requestId });
+          return;
+        }
 
-      console.log("📡 Got streaming response data from custom provider");
+        let rawChunk: string;
+        if (chunks.length > 0) {
+          rawChunk = chunks.shift()!;
+        } else {
+          if (isDone || error) break;
+          const res = await new Promise<any>(r => { resolver = r; });
+          if (res.done) break;
+          rawChunk = res.value;
+        }
 
-      // Parse the streaming response (Server-Sent Events format)
-      const responseText = String(response.data);
-      const lines = responseText.split('\n').filter(line => line.trim() !== '');
+        buffer += rawChunk;
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
-      for (const line of lines) {
-        if (signal?.aborted) break;
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
 
-        if (line.startsWith('data: ')) {
-          const jsonStr = line.substring(6);
+          const jsonStr = trimmedLine.substring(6);
           if (jsonStr === '[DONE]') {
             console.log("✅ Custom provider streaming completed");
             return;
           }
+
           try {
             const data = JSON.parse(jsonStr);
             const content = data.choices[0]?.delta?.content;
             if (content) {
-              console.log("📝 Yielding custom provider chunk:", content);
               yield content;
-              // Add small delay to simulate streaming
-              await new Promise(resolve => setTimeout(resolve, 50));
             }
           } catch (e) {
             console.error("Failed to parse custom provider stream chunk:", jsonStr, e);
           }
         }
       }
+      if (error) throw new Error(error);
     } catch (error) {
       console.error("❌ Tauri custom provider streaming failed:", error);
       throw error;
+    } finally {
+      unlisten();
     }
   } else {
     console.log("🌐 Using standard fetch for custom provider streaming");

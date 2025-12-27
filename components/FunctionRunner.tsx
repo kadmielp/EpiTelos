@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { IAIFunction, IContextSource, TreeNode } from '../types';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { SaveIcon } from './icons/SaveIcon';
 import { ExternalLinkIcon } from './icons/ExternalLinkIcon';
 import { ContextTreeView, getDescendantSourceIds } from './ContextTreeView';
@@ -13,9 +14,98 @@ import { CopyIcon } from './icons/CopyIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { PlayIcon } from './icons/PlayIcon';
 import { BrainIcon } from './icons/BrainIcon';
+import mermaid from 'mermaid';
+
+// Initialize Mermaid with premium styling
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'dark',
+  securityLevel: 'loose',
+  logLevel: 'error',
+  // @ts-ignore
+  suppressErrorConsole: true,
+  themeVariables: {
+    fontFamily: '"Outfit", "Inter", sans-serif',
+    primaryColor: '#3b82f6',
+    primaryTextColor: '#fff',
+    primaryBorderColor: '#3b82f6',
+    lineColor: '#64748b',
+    secondaryColor: '#1e293b',
+    tertiaryColor: '#0f172a',
+    mainBkg: '#0f172a',
+    nodeBorder: '#334155',
+    clusterBkg: '#1e293b',
+    titleColor: '#94a3b8',
+    edgeLabelBackground: '#1e293b',
+    nodeTextColor: '#f1f5f9'
+  }
+});
+
+const MermaidDiagram = React.memo<{ content: string }>(({ content }) => {
+  const [svg, setSvg] = useState<string>('');
+  const [error, setError] = useState<boolean>(false);
+
+  useEffect(() => {
+    const renderDiagram = async () => {
+      if (!content || content.length < 10) return;
+
+      // Basic heuristic: if it's currently being streamed and looks incomplete, wait
+      // (e.g. if it ends with a character that implies more is coming in common mermaid syntax)
+      if (content.trim().endsWith('-') || content.trim().endsWith('|')) return;
+
+      try {
+        const cleanContent = content.trim();
+        const id = `mermaid-${Math.random().toString(36).substring(2, 11)}`;
+
+        // Use parse instead of render first to check for errors silently
+        const isValid = await mermaid.parse(cleanContent, { suppressErrors: true });
+        if (!isValid) {
+          setError(true);
+          return;
+        }
+
+        const { svg } = await mermaid.render(id, cleanContent);
+        setSvg(svg);
+        setError(false);
+      } catch (err) {
+        // Silently fail during streaming - we only want to show the diagram when it's valid
+        setError(true);
+      }
+    };
+
+    renderDiagram();
+  }, [content]);
+
+  if (error && !svg) {
+    // While streaming or if invalid, just show a loading state/placeholder
+    // only show a subtle error if it's clearly stopped and still invalid
+    return null;
+  }
+
+  if (!svg) return (
+    <div className="flex flex-col items-center justify-center h-32 w-full bg-white/5 rounded-2xl border border-dashed border-white/10 my-6 animate-pulse">
+      <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-3" />
+      <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Constructing Diagram...</span>
+    </div>
+  );
+
+  return (
+    <div
+      className="flex justify-center my-6 overflow-x-auto rounded-3xl bg-slate-900/40 backdrop-blur-sm p-8 border border-white/5 shadow-2xl transition-all hover:border-blue-500/20 group relative custom-scrollbar"
+    >
+      <div className="absolute top-3 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="text-[9px] font-bold text-blue-500/50 uppercase tracking-widest">Interactive Diagram</span>
+      </div>
+      <div
+        className="w-full h-full flex justify-center"
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+    </div>
+  );
+});
 
 // Collapsible Thinking Block Component
-const ThinkingBlock: React.FC<{ content: string }> = ({ content }) => {
+const ThinkingBlock = React.memo<{ content: string }>(({ content }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -41,7 +131,7 @@ const ThinkingBlock: React.FC<{ content: string }> = ({ content }) => {
       )}
     </div>
   );
-};
+});
 
 interface FunctionRunnerProps {
   functions: IAIFunction[];
@@ -128,6 +218,25 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
     return { thinkingContent: null, mainContent: aiResponse };
   }, [aiResponse]);
 
+  // Memoize markdown components to prevent flickering on every parent re-render
+  const markdownComponents = useMemo(() => ({
+    code({ node, inline, className, children, ...props }: any) {
+      const match = /language-(\w+)/.exec(className || '');
+      const language = match ? match[1] : '';
+      const content = String(children).replace(/\n$/, '');
+
+      if (!inline && language === 'mermaid') {
+        return <MermaidDiagram content={content} />;
+      }
+
+      return (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    }
+  }), []);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modelSelectorRef.current && !modelSelectorRef.current.contains(event.target as Node)) {
@@ -141,13 +250,13 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Auto-scroll
+  // Auto-scroll logic: Only scroll if content changed while we are actively loading/streaming
   useEffect(() => {
-    if (isStreaming && responsePanelRef.current) {
+    if (isLoading && isStreaming && responsePanelRef.current) {
       const el = responsePanelRef.current;
       el.scrollTop = el.scrollHeight;
     }
-  }, [aiResponse, isStreaming]);
+  }, [aiResponse, isLoading, isStreaming]);
 
   // Context toggle
   const handleContextToggle = (node: TreeNode, isChecked: boolean) => {
@@ -578,7 +687,12 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
                     prose-li:text-slate-400
                     prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-500/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-xl
                   ">
-                    <Markdown>{parsedResponse.mainContent}</Markdown>
+                    <Markdown
+                      remarkPlugins={[remarkGfm]}
+                      components={markdownComponents}
+                    >
+                      {parsedResponse.mainContent}
+                    </Markdown>
                   </div>
                 )}
               </div>
@@ -617,6 +731,7 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
         .slide-in-from-top-2 { animation-name: slide-in-from-top-2; }
         .slide-in-from-bottom-2 { animation-name: slide-in-from-bottom-2; }
 
+
         pre code {
           font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace !important;
           font-size: 0.85rem !important;
@@ -624,6 +739,52 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
         }
 
         .prose hr { border-color: rgba(255,255,255,0.05); margin: 2rem 0; }
+
+        /* Premium Table Styling */
+        .prose table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+          margin: 2rem 0;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 16px;
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.02);
+          box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .prose thead {
+          background: rgba(255, 255, 255, 0.03);
+        }
+
+        .prose th {
+          color: #60a5fa !important; /* blue-400 */
+          font-weight: 800 !important;
+          text-transform: uppercase;
+          font-size: 0.7rem !important;
+          letter-spacing: 0.1em;
+          padding: 1rem 1.5rem !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+          text-align: left !important;
+        }
+
+        .prose td {
+          padding: 1rem 1.5rem !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+          font-size: 0.85rem !important;
+          line-height: 1.6 !important;
+          color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .prose tr:last-child td {
+          border-bottom: none !important;
+        }
+
+        .prose tr:hover td {
+          background: rgba(255, 255, 255, 0.01);
+          color: #fff !important;
+          transition: all 0.2s ease;
+        }
       `}</style>
 
       {/* System Prompt Modal Override */}
