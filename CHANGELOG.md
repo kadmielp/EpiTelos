@@ -8,21 +8,19 @@ and this project adheres to Semantic Versioning.
 ## [1.5.7] - 2025-12-27
 
 ### Added
-- **Mermaid Diagram Support**: Integrated live-rendered Mermaid diagrams (flowcharts, sequence diagrams, Gantt charts) with premium dark theme styling and backdrop-blur containers.
-- **Dynamic Gemini Model Retrieval**: Removed hardcoded whitelists. The app now fetches all available Gemini models directly from Google's API in real-time.
-- **Quota-Aware Verification**: Replaced dummy generation calls with metadata-only connection checks for Gemini, OpenAI, Maritaca, and Custom providers to preserve API generation quotas.
-- **Interactive Diagram Indicators**: Added subtle "Interactive Diagram" tags and hover effects to rendered Mermaid assets.
+- **Mermaid Diagram Support**: Integrated `mermaid.js` for real-time rendering of flowcharts, sequence diagrams, and other visual charts directly within AI responses.
+- **Dynamic Gemini Model Retrieval**: Developed a dynamic model fetching system for Google Gemini that retrieves all available models directly from the API, replacing hardcoded lists and ensuring immediate access to new model releases.
+- **Markdown Table Support**: Integrated `remark-gfm` and added premium CSS styling for professional GitHub-flavored Markdown tables.
 
 ### Changed
-- **Performance Optimization**: Memoized critical UI components (`MermaidDiagram`, `ThinkingBlock`, `Markdown`) and component configurations to eliminate flickering during user interactions.
-- **Intelligent Auto-Scroll**: Refined scroll behavior to only trigger on new content during active streaming, preventing unwanted jumps when switching settings or models.
-- **Robust Model Mapping**: Implemented a two-tier extraction logic for Gemini models to ensure compatibility across different SDK versions and environments.
-- **Unified Provider Keys**: Standardized API key passing across all dynamic model retrieval services for better session reliability.
+- **API Quota Optimization**: Re-engineered connection verification for all providers to use "passive" calls (like listing models) instead of dummy generations, protecting user API limits.
+- **Responsive Auto-Scroll**: Refined the auto-scroll behavior to be context-aware, only triggering during active generation to prevent disruptive UI jumps during navigation.
+- **UI Performance Memoization**: Implementation of `React.memo` and `useMemo` for high-complexity components (Mermaid, Markdown, Thinking blocks) to eliminate UI flickering during concurrent user interactions.
 
-### Fixed
-- **Mermaid Syntax Flicker**: Resolved issue where incomplete Mermaid code blocks during streaming would cause repeating "Syntax Error" UI blocks.
-- **Gemini List Models**: Fixed a regression that caused empty model lists when switching from static constant declarations to dynamic fetching.
-- **Unused Constants**: Cleaned up deprecated model lists and hardcoded examples from `constants.ts`.
+### Technical Notes
+- Updated `geminiService.ts` to use asynchronous iteration over the Google AI model pager.
+- Configured Mermaid with a custom dark theme and premium typography ("Outfit").
+- Transitioned versioning across all Tauri and NPM configurations to 1.5.7.
 
 
 ## [1.5.0] - 2025-12-27
