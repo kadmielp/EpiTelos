@@ -11,9 +11,8 @@ import { PROFILE_STORAGE_KEY, SESSION_STORAGE_KEY, DEFAULT_SETTINGS } from '../c
 
 const CUSTOM_FUNCTIONS_STORAGE_KEY = 'epitelos_custom_functions';
 
-const MOCK_SAMPLE_FILES = [
-  '/contexts_sample/Da Vinci - Milano - Automata Cavaliere (1495).md',
-];
+
+
 
 
 // --- AI Function Management ---
@@ -88,65 +87,17 @@ export const deleteFunction = async (functionId: string): Promise<void> => {
 
 // --- Mock File System for Context ---
 
-const getFileContent = async (path: string): Promise<string> => {
-  try {
-    const response = await fetch(path);
-    if (!response.ok) {
-      return `[ERROR: Could not fetch content for ${path}. File not found or server error.]`;
-    }
-    return await response.text();
-  } catch (error) {
-    console.error(`Failed to fetch ${path}`, error);
-    return `[ERROR: Failed to fetch ${path}. Check network connection.]`;
-  }
-}
-
 export const readSingleContextSource = async (source: IContextSource): Promise<string> => {
   const subfolderNote = source.type === 'folder' && source.includeSubfolders ? ' (including all subfolders)' : '';
   const header = `--- Start of Context from ${source.type.toUpperCase()}: "${source.remark}" (${source.path})${subfolderNote} ---\n`;
   const footer = `--- End of Context from: "${source.remark}" ---\n`;
-  let body = '';
 
-  // Handle user-added paths (which are mocked)
-  if (!source.path.startsWith('/contexts_sample')) {
-    body = `(Note: This is simulated content for the user-added path: ${source.path})\n\n` +
-      `This is mock content for the path "${source.path}". In a real desktop application, the actual content would be read here.`;
-    return `${header}${body}\n${footer}`;
-  }
-
-  // Handle sample files and folders by simulating the file system
-  if (source.type === 'file') {
-    body = await getFileContent(source.path);
-  } else { // folder
-    const parentPathWithSlash = source.path.endsWith('/') ? source.path : `${source.path}/`;
-
-    const filesToRead = MOCK_SAMPLE_FILES.filter(path => {
-      if (source.excludedPaths?.includes(path)) return false;
-      if (!path.startsWith(parentPathWithSlash)) {
-        return false;
-      }
-      if (!source.includeSubfolders) {
-        const remainingPath = path.substring(parentPathWithSlash.length);
-        return !remainingPath.includes('/');
-      }
-      return true;
-    });
-
-    if (filesToRead.length === 0) {
-      body = `(Folder is empty or no matching sample files found for: ${source.path})`;
-    } else {
-      const fileContents = await Promise.all(
-        filesToRead.map(async (filePath) => {
-          const content = await getFileContent(filePath);
-          return `--- File: ${filePath} ---\n${content}`;
-        })
-      );
-      body = fileContents.join('\n\n');
-    }
-  }
+  const body = `(Note: This is simulated content for the path: ${source.path})\n\n` +
+    `This is mock content for the path "${source.path}". In a real desktop application, the actual content would be read here.`;
 
   return `${header}${body}\n${footer}`;
 }
+
 
 
 export const readContextSources = async (sources: IContextSource[]): Promise<string> => {
@@ -159,89 +110,29 @@ export const readContextSources = async (sources: IContextSource[]): Promise<str
 };
 
 export const getRawContextForInspection = async (source: IContextSource): Promise<string> => {
-  // Handle mocked user-added paths
-  if (!source.path.startsWith('/contexts_sample')) {
-    let content = `(Note: This is simulated raw content for the user-added path: ${source.path})\n\n`;
-    if (source.type === 'file') {
-      content += `This is mock content for the file "${source.path}".`;
-    } else {
-      content += `This is mock content for the folder "${source.path}". When inspecting a folder, the content of all its files are concatenated.`;
-    }
-    return content;
-  }
-
+  let content = `(Note: This is simulated raw content for the path: ${source.path})\n\n`;
   if (source.type === 'file') {
-    return await getFileContent(source.path);
+    content += `This is mock content for the file "${source.path}".`;
+  } else {
+    content += `This is mock content for the folder "${source.path}". When inspecting a folder, the content of all its files are concatenated.`;
   }
-
-  // For folders, concatenate raw content of files with a minimal separator
-  const parentPathWithSlash = source.path.endsWith('/') ? source.path : `${source.path}/`;
-  const filesToRead = MOCK_SAMPLE_FILES.filter(path => {
-    if (source.excludedPaths?.includes(path)) return false;
-    if (!path.startsWith(parentPathWithSlash)) return false;
-    if (!source.includeSubfolders) {
-      const remainingPath = path.substring(parentPathWithSlash.length);
-      return !remainingPath.includes('/');
-    }
-    return true;
-  });
-
-  if (filesToRead.length === 0) {
-    return `(This folder is empty or no matching sample files were found.)`;
-  }
-
-  const fileContents = await Promise.all(
-    filesToRead.map(async (filePath) => {
-      const fileName = filePath.split('/').pop();
-      const content = await getFileContent(filePath);
-      return `--- ${fileName} ---\n${content}`;
-    })
-  );
-  return fileContents.join('\n\n');
+  return content;
 };
 
 export const expandFolderSource = async (source: IContextSource): Promise<IContextSource[]> => {
   if (source.type !== 'folder') return [source];
 
-  // For non-sample paths in web mode, we can only provide a mock expansion.
-  if (!source.path.startsWith('/contexts_sample')) {
-    return [{
-      id: `ctx-mock-${source.remark.replace(/\s/g, '')}`,
-      path: `${source.path}/mock-file.md`,
-      remark: `mock-file.md from ${source.remark}`,
-      type: 'file',
-      isHidden: source.isHidden,
-      includeSubfolders: false
-    }];
-  }
-
-  const parentPathWithSlash = source.path.endsWith('/') ? source.path : `${source.path}/`;
-
-  const filesToRead = MOCK_SAMPLE_FILES.filter(path => {
-    if (source.excludedPaths?.includes(path)) return false;
-    if (!path.startsWith(parentPathWithSlash)) return false;
-    if (!source.includeSubfolders) {
-      const remainingPath = path.substring(parentPathWithSlash.length);
-      return !remainingPath.includes('/');
-    }
-    return true;
-  });
-
-  return filesToRead.map(filePath => {
-    const fileName = filePath.split('/').pop() || '';
-    const remark = fileName.includes('.') ? fileName.split('.').slice(0, -1).join('.') : fileName;
-    const isHiddenOverride = source.overrideHidden?.[filePath];
-
-    return {
-      id: `ctx-${filePath.replace(/[^a-zA-Z0-9]/g, '-')}`,
-      path: filePath,
-      remark: remark,
-      type: 'file',
-      isHidden: typeof isHiddenOverride === 'boolean' ? isHiddenOverride : source.isHidden,
-      includeSubfolders: false,
-    };
-  });
+  // Provide a simple mock expansion for any folder in web mode
+  return [{
+    id: `ctx-mock-${source.remark.replace(/\s/g, '')}`,
+    path: `${source.path}/mock-file.md`,
+    remark: `mock-file.md from ${source.remark}`,
+    type: 'file',
+    isHidden: source.isHidden,
+    includeSubfolders: false
+  }];
 };
+
 
 
 // --- Profile & Session Management ---

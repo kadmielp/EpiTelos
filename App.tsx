@@ -208,48 +208,13 @@ const useAppLogic = () => {
     if (loadedProfile) {
       const migratedSettings = { ...DEFAULT_SETTINGS, ...loadedProfile.settings };
       setSettings(migratedSettings);
-
-      const existingContexts = loadedProfile.contexts || [];
-      const newSamplePath = '/contexts_sample/Da Vinci - Milano - Automata Cavaliere (1495).md';
-      const hasNewSample = existingContexts.some((c: IContextSource) => c.path === newSamplePath);
-
-      let updatedContexts = [...existingContexts];
-
-      // Remove old samples if they exist in the persistent list to keep it clean
-      updatedContexts = updatedContexts.filter((c: IContextSource) =>
-        c.path !== '/contexts_sample/journal.md' &&
-        c.path !== '/contexts_sample/yearreview.md'
-      );
-
-      if (!hasNewSample) {
-        updatedContexts.push({
-          id: 'ctx-davinci-sample',
-          path: newSamplePath,
-          remark: 'Da Vinci Milano (1495) - Automata Cavaliere (Sample)',
-          type: 'file',
-          isHidden: false
-        });
-        // Save immediately so it persists
-        saveProfile(migratedSettings, updatedContexts);
-      }
-
-      setUserAddedContexts(updatedContexts);
+      setUserAddedContexts(loadedProfile.contexts || []);
     } else {
-
-      const defaultContexts: IContextSource[] = [
-        {
-          id: 'ctx-davinci-sample',
-          path: '/contexts_sample/Da Vinci - Milano - Automata Cavaliere (1495).md',
-          remark: 'Da Vinci Milano (1495) - Automata Cavaliere (Sample)',
-          type: 'file',
-          isHidden: false
-        },
-      ];
-
       setSettings(DEFAULT_SETTINGS);
-      setUserAddedContexts(defaultContexts);
-      await saveProfile(DEFAULT_SETTINGS, defaultContexts);
+      setUserAddedContexts([]);
+      await saveProfile(DEFAULT_SETTINGS, []);
     }
+
 
     if (loadedSession && loadedSession.timestamp) {
       setShowSessionModal(true);

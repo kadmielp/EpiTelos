@@ -16,8 +16,7 @@ and this project adheres to Semantic Versioning.
 ### Changed
 - **Secure Persistence Logic**: Refactored `desktopFileService.ts` to coordinate between the file system and the secure keychain.
 - **Export/Import Logic**: Updated portability features to ensure API keys are retrieved from secure storage during export and properly re-secured upon import on a new machine.
-- **Sample Migration System**: Implemented logic to automatically transition existing users to the new sample content while cleaning up deprecated legacy files from the context manager.
-- **Replaced sample files**: Replaced legacy sample files.
+
 
 
 ### Technical Notes
