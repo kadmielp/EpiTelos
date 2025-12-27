@@ -112,7 +112,7 @@ export const Settings: React.FC<SettingsProps> = ({
         const isVerifying = verificationStatus.type === 'verifying';
 
         return (
-            <div className={`mt-3 p-3 rounded-xl border animate-in fade-in slide-in-from-top-1 transition-all duration-300 text-[11px] font-medium ${isSuccess
+            <div className={`mt-3 p-3 rounded-xl border transition-all duration-300 text-[11px] font-medium ${isSuccess
                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                 : isError
                     ? 'bg-red-500/10 border-red-500/20 text-red-400'
@@ -206,7 +206,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                         <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${isProviderDropdownOpen ? 'rotate-180' : ''}`} />
                                     </button>
                                     {isProviderDropdownOpen && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-top-1">
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden backdrop-blur-3xl">
                                             <div className="p-1.5">
                                                 {['Gemini', 'Ollama', 'OpenAI', 'Maritaca', 'Custom'].map(source => (
                                                     <button
@@ -240,7 +240,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                         <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
                                     </button>
                                     {isModelDropdownOpen && availableModels.length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-top-1">
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden backdrop-blur-3xl">
                                             <div className="max-h-60 overflow-y-auto custom-scrollbar p-1.5">
                                                 {availableModels.map(model => (
                                                     <button
@@ -276,7 +276,7 @@ export const Settings: React.FC<SettingsProps> = ({
                         <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-3xl p-6 shadow-2xl">
                             {/* Gemini Settings */}
                             {localSettings.modelSource === 'Gemini' && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-semibold text-slate-300 ml-1">Gemini API Key</label>
                                         <div className="flex gap-3">
@@ -304,7 +304,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
                             {/* Ollama Settings */}
                             {localSettings.modelSource === 'Ollama' && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-semibold text-slate-300 ml-1">Ollama API Base URL</label>
                                         <div className="flex gap-3">
@@ -331,7 +331,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
                             {/* OpenAI Settings */}
                             {localSettings.modelSource === 'OpenAI' && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-semibold text-slate-300 ml-1">OpenAI API Key</label>
                                         <div className="flex gap-3">
@@ -358,7 +358,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
                             {/* Maritaca Settings */}
                             {localSettings.modelSource === 'Maritaca' && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-semibold text-slate-300 ml-1">Maritaca API Key</label>
                                         <div className="flex gap-3">
@@ -386,7 +386,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
                             {/* Custom Provider Settings */}
                             {localSettings.modelSource === 'Custom' && (
-                                <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                                <div className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label className="text-xs font-semibold text-slate-300 ml-1">Base URL</label>
@@ -423,11 +423,34 @@ export const Settings: React.FC<SettingsProps> = ({
                             )}
                         </div>
                     </section>
+
+                    {/* Interface Preferences */}
+                    <section className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Interface Preferences</label>
+                            <div className="h-px bg-white/5 flex-grow" />
+                        </div>
+
+                        <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-3xl p-6 shadow-2xl">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <h4 className="text-sm font-semibold text-white">Completion Notification</h4>
+                                    <p className="text-[10px] text-slate-500 font-medium">Play a subtle sound when the AI finishing generating a response.</p>
+                                </div>
+                                <button
+                                    onClick={() => handleLocalSettingsChange({ notificationEnabled: !localSettings.notificationEnabled })}
+                                    className={`w-11 h-6 rounded-full transition-all duration-500 relative border border-white/5 ${localSettings.notificationEnabled ? 'bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'bg-slate-800'}`}
+                                >
+                                    <div className={`absolute top-0.5 w-[20px] h-[20px] bg-white rounded-full transition-all duration-500 shadow-md ${localSettings.notificationEnabled ? 'left-[22px]' : 'left-0.5'}`} />
+                                </button>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
 
             {/* Action Footer */}
-            <div className="z-10 p-6 border-t border-white/[0.08] bg-slate-950/80 backdrop-blur-3xl flex items-center justify-center">
+            <div className="z-10 p-6 border-t border-white/5 bg-slate-900/40 backdrop-blur-md flex items-center justify-center">
                 <div className="max-w-4xl w-full flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         {hasChanges ? (
@@ -460,13 +483,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 20px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.3); }
 
-                @keyframes slide-in-from-top-1 { from { transform: translateY(-4px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-                @keyframes slide-in-from-top-2 { from { transform: translateY(-12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-                
-                .animate-in { animation: 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
-                .fade-in { animation-name: fade-in; }
-                .slide-in-from-top-1 { animation-name: slide-in-from-top-1; }
-                .slide-in-from-top-2 { animation-name: slide-in-from-top-2; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.3); }
             `}</style>
         </div>
     );

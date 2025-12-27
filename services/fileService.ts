@@ -12,9 +12,9 @@ import { PROFILE_STORAGE_KEY, SESSION_STORAGE_KEY, DEFAULT_SETTINGS } from '../c
 const CUSTOM_FUNCTIONS_STORAGE_KEY = 'epitelos_custom_functions';
 
 const MOCK_SAMPLE_FILES = [
-  '/contexts_sample/journal.md',
-  '/contexts_sample/yearreview.md',
+  '/contexts_sample/Da Vinci - Milano - Automata Cavaliere (1495).md',
 ];
+
 
 // --- AI Function Management ---
 

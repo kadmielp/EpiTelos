@@ -30,6 +30,7 @@ export const DEFAULT_SETTINGS: ISettings = {
   customApiKey: '',
   defaultFunctionId: null,
   defaultContextIds: [],
+  notificationEnabled: true,
 };
 
 export const EMPTY_SESSION: ISession = {

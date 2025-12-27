@@ -55,6 +55,7 @@ export interface ISettings {
   customApiKey?: string;
   defaultFunctionId: string | null;
   defaultContextIds: string[];
+  notificationEnabled?: boolean;
 }
 
 export interface ISession {

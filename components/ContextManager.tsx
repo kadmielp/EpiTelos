@@ -98,213 +98,211 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
   };
 
   return (
-    <div className="p-6 h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
-      {/* Modern Header with Gradient */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-1.5">
-          Context Manager
-        </h2>
-        <div className="h-0.5 w-24 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"></div>
+    <div className="h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-200 selection:bg-blue-500/30 overflow-hidden relative">
+      {/* Premium Gradient Backgrounds Overlay */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
       </div>
 
-      {/* Add New Context Section */}
-      <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl p-4 rounded-xl mb-4 border border-slate-700/50 shadow-2xl">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-1 h-6 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 rounded-full"></div>
+      {/* Header Area */}
+      <div className="z-10 px-8 py-6 border-b border-white/5 flex items-center justify-between bg-slate-900/40 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
           <div>
-            <h3 className="text-lg font-bold text-white">Add New Context Source</h3>
-            <p className="text-xs text-slate-400">Select local files or folders to provide context to AI</p>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Knowledge architecture</h2>
+            <h1 className="text-xl font-bold text-white tracking-tight">Context Manager</h1>
           </div>
         </div>
-
-        {/* Type Selection with Modern Radio Buttons */}
-        <div className="flex items-center space-x-6 mb-4 p-3 bg-slate-900/50 rounded-lg border border-slate-700/30">
-          <span className="text-xs font-semibold text-slate-300 uppercase tracking-wide">Type:</span>
-          <label className="flex items-center cursor-pointer group">
-            <input
-              type="radio"
-              name="contextType"
-              value="folder"
-              checked={newType === 'folder'}
-              onChange={() => setNewType('folder')}
-              className="h-4 w-4 bg-slate-700 border-2 border-slate-500 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all"
-            />
-            <span className="ml-2 text-sm text-slate-200 font-medium group-hover:text-white transition-colors">Folder</span>
-          </label>
-          <label className="flex items-center cursor-pointer group">
-            <input
-              type="radio"
-              name="contextType"
-              value="file"
-              checked={newType === 'file'}
-              onChange={() => setNewType('file')}
-              className="h-4 w-4 bg-slate-700 border-2 border-slate-500 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all"
-            />
-            <span className="ml-2 text-sm text-slate-200 font-medium group-hover:text-white transition-colors">File</span>
-          </label>
-        </div>
-
-        {/* Include Subfolders Checkbox */}
-        {newType === 'folder' && (
-          <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <label className="flex items-center cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={includeSubfolders}
-                onChange={e => setIncludeSubfolders(e.target.checked)}
-                className="h-4 w-4 bg-slate-700 border-2 border-slate-500 text-blue-600 focus:ring-2 focus:ring-blue-500 rounded-md transition-all"
-              />
-              <span className="ml-2 text-sm text-slate-200 font-medium group-hover:text-white transition-colors">
-                Include subfolders and their files
-              </span>
-            </label>
-          </div>
-        )}
-
-        {/* Path and Remark Inputs */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
-          <div className="lg:col-span-2 flex items-center gap-2">
-            <input
-              type="text"
-              value={newPath}
-              onChange={(e) => setNewPath(e.target.value)}
-              placeholder={newType === 'folder' ? "Click Browse to select a folder..." : "Click Browse to select a file..."}
-              readOnly
-              className="flex-grow bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 cursor-default backdrop-blur-sm placeholder:text-slate-500"
-            />
-            <button
-              onClick={handleBrowseClick}
-              className="bg-slate-700/80 hover:bg-slate-600/80 text-white font-semibold py-2.5 px-4 text-sm rounded-lg transition-all duration-300 flex-shrink-0 border border-slate-600/50 hover:border-slate-500/50 shadow-lg hover:shadow-xl"
-            >
-              Browse...
-            </button>
-            {!isDesktop && (<input
-              type="file"
-              ref={webFileInputRef}
-              onChange={handleWebFileSelect}
-              className="hidden"
-            />)}
-          </div>
-          <input
-            type="text"
-            value={newRemark}
-            onChange={(e) => setNewRemark(e.target.value)}
-            placeholder="Remark (e.g., 'My Daily Journal')"
-            className="w-full bg-slate-800/80 border border-slate-600/50 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:bg-slate-800 backdrop-blur-sm placeholder:text-slate-500"
-          />
-        </div>
-
-        {/* Add Button */}
-        <button
-          onClick={handleAddContext}
-          disabled={!newPath || !newRemark}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-2.5 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:from-slate-600 disabled:to-slate-600 disabled:cursor-not-allowed transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] disabled:hover:scale-100"
-        >
-          Add Context
-        </button>
-      </div>
-
-      {/* Managed Contexts Section */}
-      <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl p-4 rounded-xl flex-grow overflow-hidden border border-slate-700/50 shadow-2xl flex flex-col">
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-6 bg-gradient-to-b from-emerald-500 via-teal-500 to-cyan-500 rounded-full"></div>
-            <h3 className="text-lg font-bold text-white">Managed Contexts</h3>
-          </div>
+        <div className="flex gap-2.5">
           <button
             onClick={handleRefreshAllFolders}
-            className="flex items-center gap-2 px-3 py-2 text-xs bg-slate-700/60 hover:bg-slate-600/60 text-white font-semibold rounded-lg transition-all duration-300 border border-slate-600/50 hover:border-slate-500/50 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
-            title="Refresh all folders set to include subdirectories"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-[11px] font-bold uppercase tracking-wider text-slate-300 group"
           >
-            <RefreshIcon className="w-4 h-4" />
-            Refresh All
+            <RefreshIcon className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
+            Sync All
           </button>
         </div>
+      </div>
 
-        {/* Context Tree */}
-        <div className="flex-grow overflow-y-auto space-y-1 custom-scrollbar">
-          {contexts.length > 0 ? (
-            <ContextTreeView
-              contexts={contexts}
-              renderNode={(node, isExpanded, toggleExpand) => {
-                const source = node.source;
-                const isIntermediateFolder = !source;
+      <div className="flex-grow overflow-y-auto custom-scrollbar z-10 p-8">
+        <div className="max-w-5xl mx-auto space-y-8">
+          {/* Add New Source Section */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-4">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Ingest New Knowledge</label>
+              <div className="h-px bg-white/5 flex-grow" />
+            </div>
 
-                // Handle intermediate folders (e.g., `contexts_sample2` which is just a container)
-                if (isIntermediateFolder) {
-                  return (
-                    <div className="flex items-center w-full p-2 rounded-lg hover:bg-slate-700/60 transition-all duration-200 group">
-                      <div
-                        className="flex items-center cursor-pointer select-none flex-grow min-w-0"
-                        onClick={(e) => toggleExpand(e)}
-                        title={node.id}
-                      >
-                        <FolderIcon className="w-4 h-4 mr-2 text-slate-400 group-hover:text-slate-300 flex-shrink-0 transition-colors" />
-                        <p className="text-sm font-medium truncate text-slate-400 group-hover:text-slate-300 transition-colors">{node.name}</p>
-                      </div>
-                    </div>
-                  );
-                }
-
-                // Handle all nodes with a source (user-added files/folders, and derived files)
-                return (
-                  <div className={`flex items-center justify-between w-full p-2 rounded-lg transition-all duration-200 group hover:bg-slate-700/60 ${source.isHidden ? 'opacity-50' : ''}`}>
-                    <div
-                      className="flex items-center cursor-pointer select-none flex-grow min-w-0"
-                      onClick={(e) => {
-                        // Folder markers are expandable, all other sources (files) are inspectable
-                        if (source.isFolderMarker) {
-                          toggleExpand(e);
-                        } else {
-                          handleViewContext(source.id);
-                        }
-                      }}
-                      title={source.path}
+            <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-3xl p-6 shadow-2xl space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Type Selection */}
+                <div className="space-y-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Source Type</p>
+                  <div className="flex p-1 bg-slate-950/50 rounded-2xl border border-white/5">
+                    <button
+                      onClick={() => setNewType('folder')}
+                      className={`flex-grow py-2.5 rounded-xl text-xs font-bold transition-all ${newType === 'folder' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
                     >
-                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 uppercase tracking-wider transition-all ${source.isFolderMarker ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}`}>
-                        {source.isFolderMarker ? 'DIR' : 'FILE'}
-                      </span>
-                      <p className="text-sm font-medium text-white truncate ml-2 group-hover:text-blue-300 transition-colors">{source.remark}</p>
-                      {source.isFolderMarker && source.includeSubfolders &&
-                        <span className="text-[10px] text-sky-400 ml-1.5 flex-shrink-0 font-semibold">(+subs)</span>
-                      }
-                    </div>
+                      Folder System
+                    </button>
+                    <button
+                      onClick={() => setNewType('file')}
+                      className={`flex-grow py-2.5 rounded-xl text-xs font-bold transition-all ${newType === 'file' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                      Individual File
+                    </button>
+                  </div>
+                </div>
 
-                    {/* Action buttons with fade-in effect */}
-                    <div className="flex items-center gap-1 flex-shrink-0 ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleContextVisibility(source.id); }}
-                        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-600/60 rounded-md transition-all duration-200 border border-transparent hover:border-slate-500/50"
-                        title={source.isHidden ? 'Show in Function Runner' : 'Hide from Function Runner'}
-                      >
-                        {source.isHidden ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setToDelete({ ids: [source.id], remark: source.remark });
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all duration-200 border border-transparent hover:border-red-500/30"
-                        title={`Remove ${source.remark}`}
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
+                {/* Subfolder Toggle */}
+                <div className="space-y-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Configuration</p>
+                  <div className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${newType === 'folder' ? 'bg-slate-950/50 border-white/10' : 'bg-slate-950/20 border-white/5 opacity-30 cursor-not-allowed'}`}>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-slate-200">Include Subdirectories</span>
+                      <span className="text-[10px] text-slate-500">Recursive discovery of all nested files</span>
+                    </div>
+                    <button
+                      disabled={newType !== 'folder'}
+                      onClick={() => setIncludeSubfolders(!includeSubfolders)}
+                      className={`w-10 h-5 rounded-full transition-all relative border border-white/5 ${includeSubfolders && newType === 'folder' ? 'bg-blue-600' : 'bg-slate-800'}`}
+                    >
+                      <div className={`absolute top-0.5 w-3.5 h-3.5 bg-white rounded-full transition-all shadow-md ${includeSubfolders && newType === 'folder' ? 'left-[22px]' : 'left-0.5'}`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Path and Remark */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div className="md:col-span-8 group relative">
+                  <input
+                    type="text"
+                    value={newPath}
+                    readOnly
+                    placeholder={newType === 'folder' ? "Select a knowledge directory..." : "Select a knowledge file..."}
+                    className="w-full bg-slate-950/50 border border-white/10 rounded-2xl py-3.5 pl-4 pr-32 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all cursor-default"
+                  />
+                  <button
+                    onClick={handleBrowseClick}
+                    className="absolute right-2 top-1.5 bottom-1.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-white/5 transition-all text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95"
+                  >
+                    Browse
+                  </button>
+                  {!isDesktop && (<input type="file" ref={webFileInputRef} onChange={handleWebFileSelect} className="hidden" />)}
+                </div>
+                <div className="md:col-span-4">
+                  <input
+                    type="text"
+                    value={newRemark}
+                    onChange={(e) => setNewRemark(e.target.value)}
+                    placeholder="Reference label..."
+                    className="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-3.5 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleAddContext}
+                disabled={!newPath || !newRemark}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] disabled:opacity-30 disabled:grayscale transition-all active:scale-[0.99] text-xs uppercase tracking-[0.2em]"
+              >
+                Assemble Knowledge Context
+              </button>
+            </div>
+          </section>
+
+          {/* Managed Contexts Section */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-4">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Active Knowledge Base</label>
+              <div className="h-px bg-white/5 flex-grow" />
+            </div>
+
+            <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl flex flex-col min-h-[400px]">
+              <div className="p-6 flex-grow overflow-y-auto custom-scrollbar">
+                {contexts.length > 0 ? (
+                  <ContextTreeView
+                    contexts={contexts}
+                    renderNode={(node, isExpanded, toggleExpand) => {
+                      const source = node.source;
+                      const isIntermediateFolder = !source;
+
+                      if (isIntermediateFolder) {
+                        return (
+                          <div className="flex items-center w-full px-4 py-2 rounded-xl hover:bg-white/5 transition-all group">
+                            <button
+                              className="flex items-center text-left flex-grow min-w-0"
+                              onClick={(e) => toggleExpand(e)}
+                            >
+                              <FolderIcon className="w-4 h-4 mr-3 text-slate-500 group-hover:text-blue-400 transition-colors flex-shrink-0" />
+                              <span className="text-sm font-semibold text-slate-400 group-hover:text-slate-200 transition-colors truncate">{node.name}</span>
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className={`flex items-center justify-between w-full px-4 py-2.5 rounded-2xl transition-all group hover:bg-white/5 ${source.isHidden ? 'opacity-40 grayscale' : ''}`}>
+                          <div
+                            className="flex items-center cursor-pointer select-none flex-grow min-w-0"
+                            onClick={(e) => {
+                              if (source.isFolderMarker) toggleExpand(e);
+                              else handleViewContext(source.id);
+                            }}
+                          >
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-md flex-shrink-0 uppercase tracking-tighter transition-all border ${source.isFolderMarker ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+                              {source.isFolderMarker ? 'DIR' : 'FILE'}
+                            </span>
+                            <div className="ml-4 flex flex-col min-w-0">
+                              <span className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors truncate">
+                                {source.remark}
+                                {source.isFolderMarker && source.includeSubfolders && (
+                                  <span className="text-[9px] text-blue-500 ml-2 uppercase tracking-widest font-black">(Recursive)</span>
+                                )}
+                              </span>
+                              <span className="text-[10px] text-slate-500 truncate mt-0.5 font-mono">{source.path}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-6 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); toggleContextVisibility(source.id); }}
+                              className={`p-2 rounded-xl border transition-all ${source.isHidden ? 'bg-white/5 text-slate-400 border-white/5 hover:text-white hover:bg-white/10' : 'bg-blue-600/10 text-blue-400 border-blue-500/20 hover:bg-blue-600/20'}`}
+                              title={source.isHidden ? 'Include in analysis' : 'Exclude from analysis'}
+                            >
+                              {source.isHidden ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setToDelete({ ids: [source.id], remark: source.remark });
+                              }}
+                              className="p-2 bg-red-600/10 text-red-400 border border-red-500/20 rounded-xl hover:bg-red-600/20 transition-all"
+                              title={`Detach ${source.remark}`}
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                ) : (
+                  <div className="h-[300px] flex flex-col items-center justify-center space-y-4 opacity-30">
+                    <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
+                      <FolderIcon className="w-10 h-10 text-slate-600" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-slate-400">Knowledge Void</p>
+                      <p className="text-xs uppercase tracking-widest font-black">Awaiting data ingestion</p>
                     </div>
                   </div>
-                );
-              }}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-700/50 rounded-full mb-3">
-                  <span className="text-2xl">📁</span>
-                </div>
-                <p className="text-sm text-slate-400 font-medium mb-1">No context sources yet</p>
-                <p className="text-xs text-slate-500">Add files or folders to get started</p>
+                )}
               </div>
             </div>
-          )}
+          </section>
         </div>
       </div>
 
@@ -312,30 +310,40 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
       <Modal
         isOpen={toDelete !== null}
         onClose={() => setToDelete(null)}
-        title="Confirm Removal"
+        title="Knowledge Detachment"
       >
         {toDelete && (
-          <div>
-            <p className="text-slate-300 mb-2">
-              Are you sure you want to remove <span className="font-semibold text-white">"{toDelete.remark}"</span>?
-            </p>
-            <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg mb-4">
-              <p className="text-xs text-slate-400">
-                ℹ️ This will remove the item from this list. It will <span className="font-semibold text-slate-300">NOT delete</span> the actual file or folder from your computer.
+          <div className="space-y-6">
+            <div className="p-4 bg-red-600/10 border border-red-500/20 rounded-2xl flex items-start gap-4">
+              <div className="p-2 bg-red-600/20 rounded-lg text-red-400 mt-1">
+                <TrashIcon className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-white leading-tight">Remove from Active Context</p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Are you sure you want to detach <span className="text-red-400 font-bold font-mono">"{toDelete.remark}"</span>?
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-blue-600/5 border border-blue-500/10 rounded-2xl">
+              <p className="text-[11px] text-slate-400 leading-relaxed italic">
+                Note: This only removes the reference from EpiTelos. Your original files on disk will remaining untouched and secure.
               </p>
             </div>
-            <div className="flex justify-end space-x-3">
+
+            <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setToDelete(null)}
-                className="px-4 py-2 text-sm rounded-lg bg-slate-700/60 hover:bg-slate-600/60 text-white font-semibold transition-all duration-300 border border-slate-600/50 hover:border-slate-500/50"
+                className="px-6 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all border border-white/5"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 text-sm rounded-lg bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                className="px-6 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] text-white transition-all active:scale-95"
               >
-                Remove
+                Confirm Removal
               </button>
             </div>
           </div>
@@ -343,21 +351,18 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
       </Modal>
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(15, 23, 42, 0.3);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, rgb(71, 85, 105), rgb(51, 65, 85));
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, rgb(59, 130, 246), rgb(147, 51, 234));
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 20px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.3); }
+
+        @keyframes slide-in-from-top-1 { from { transform: translateY(-4px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slide-in-from-top-2 { from { transform: translateY(-12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .animate-in { animation: 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .fade-in { animation-name: fade-in; }
+        .slide-in-from-top-1 { animation-name: slide-in-from-top-1; }
+        .slide-in-from-top-2 { animation-name: slide-in-from-top-2; }
       `}</style>
     </div>
   );

@@ -9,27 +9,27 @@ import { IAIFunction, IContextSource, ISettings, ISession } from '../types';
 // Define the shape of the Tauri API so TypeScript doesn't complain.
 // This will be available on the `window` object in a Tauri app.
 declare global {
-  interface Window {
-    __TAURI__: {
-      fs: {
-        readTextFile(path: string): Promise<string>;
-        writeTextFile(path: string, contents: string): Promise<void>;
-        readDir(path: string, options?: { recursive?: boolean }): Promise<any[]>;
-        exists(path: string): Promise<boolean>;
-        createDir(path: string, options?: { recursive?: boolean }): Promise<void>;
-        removeFile(path: string): Promise<void>;
-        removeDir(path: string, options?: { recursive?: boolean }): Promise<void>;
-      };
-      path: {
-        appDataDir(): Promise<string>;
-        join(...paths: string[]): Promise<string>;
-      };
-      dialog: {
-        open(options: any): Promise<string | string[] | null>;
-        save(options: any): Promise<string | null>;
-      }
-    };
-  }
+    interface Window {
+        __TAURI__: {
+            fs: {
+                readTextFile(path: string): Promise<string>;
+                writeTextFile(path: string, contents: string): Promise<void>;
+                readDir(path: string, options?: { recursive?: boolean }): Promise<any[]>;
+                exists(path: string): Promise<boolean>;
+                createDir(path: string, options?: { recursive?: boolean }): Promise<void>;
+                removeFile(path: string): Promise<void>;
+                removeDir(path: string, options?: { recursive?: boolean }): Promise<void>;
+            };
+            path: {
+                appDataDir(): Promise<string>;
+                join(...paths: string[]): Promise<string>;
+            };
+            dialog: {
+                open(options: any): Promise<string | string[] | null>;
+                save(options: any): Promise<string | null>;
+            }
+        };
+    }
 }
 
 const tauri = window.__TAURI__;
@@ -67,7 +67,7 @@ export const getFunctions = async (): Promise<IAIFunction[]> => {
 
     for (const entry of entries) {
         // A function is represented by a directory containing manifest.json and system.md
-        if (entry.children) { 
+        if (entry.children) {
             const funcId = entry.name; // The directory name is the function ID
             const manifestPath = await tauri.path.join(entry.path, 'manifest.json');
             const systemPath = await tauri.path.join(entry.path, 'system.md');
@@ -77,16 +77,16 @@ export const getFunctions = async (): Promise<IAIFunction[]> => {
                     const manifestContent = await tauri.fs.readTextFile(manifestPath);
                     const manifest = JSON.parse(manifestContent);
                     const systemPrompt = await tauri.fs.readTextFile(systemPath);
-                    
+
                     // The ID from the directory name is the source of truth
                     customFuncs.push({ ...manifest, id: funcId, systemPrompt, isCustom: true });
-                } catch(e) {
+                } catch (e) {
                     console.error(`Failed to load custom function from ${entry.path}:`, e)
                 }
             }
         }
     }
-    
+
     return [...builtInFuncs, ...customFuncs];
 };
 
@@ -95,7 +95,7 @@ export const saveFunction = async (func: Partial<IAIFunction>): Promise<void> =>
     if (!(await tauri.fs.exists(customFuncsDir))) {
         await tauri.fs.createDir(customFuncsDir, { recursive: true });
     }
-    
+
     const funcId = func.id && func.isCustom ? func.id : `func-custom-${Date.now()}`;
     const funcDir = await tauri.path.join(customFuncsDir, funcId);
 
@@ -117,7 +117,7 @@ export const saveFunction = async (func: Partial<IAIFunction>): Promise<void> =>
 export const deleteFunction = async (functionId: string): Promise<void> => {
     const customFuncsDir = await getCustomFuncsPath();
     const funcDir = await tauri.path.join(customFuncsDir, functionId);
-    
+
     if (await tauri.fs.exists(funcDir)) {
         await tauri.fs.removeDir(funcDir, { recursive: true });
     } else {
@@ -128,19 +128,19 @@ export const deleteFunction = async (functionId: string): Promise<void> => {
 // --- Context File Reading ---
 
 async function* walk(dir: string): AsyncGenerator<string> {
-  const entries = await tauri.fs.readDir(dir, { recursive: true });
+    const entries = await tauri.fs.readDir(dir, { recursive: true });
 
-  async function* processEntries(items: any[]): AsyncGenerator<string> {
-    for (const item of items) {
-      if (item.children) { // It's a directory, recurse into its children
-        yield* processEntries(item.children);
-      } else { // It's a file
-        yield item.path;
-      }
+    async function* processEntries(items: any[]): AsyncGenerator<string> {
+        for (const item of items) {
+            if (item.children) { // It's a directory, recurse into its children
+                yield* processEntries(item.children);
+            } else { // It's a file
+                yield item.path;
+            }
+        }
     }
-  }
 
-  yield* processEntries(entries);
+    yield* processEntries(entries);
 }
 
 export const expandFolderSource = async (source: IContextSource): Promise<IContextSource[]> => {
@@ -178,7 +178,7 @@ export const expandFolderSource = async (source: IContextSource): Promise<IConte
             }
         }
     };
-    
+
     processEntries(files);
 
     return fileContexts;
@@ -192,18 +192,18 @@ export const readSingleContextSource = async (source: IContextSource): Promise<s
         }
 
         if (source.type === 'file') {
-             const header = `--- Start of Context from FILE: "${source.remark}" (${source.path}) ---\n`;
-             const footer = `--- End of Context from: "${source.remark}" ---\n`;
-             const body = await tauri.fs.readTextFile(source.path);
-             return `${header}${body}\n${footer}`;
+            const header = `--- Start of Context from FILE: "${source.remark}" (${source.path}) ---\n`;
+            const footer = `--- End of Context from: "${source.remark}" ---\n`;
+            const body = await tauri.fs.readTextFile(source.path);
+            return `${header}${body}\n${footer}`;
         } else { // 'folder'
             let content = `--- Start of Context from folder: "${source.remark}" (${source.path}) ---\n\n`;
-            
+
             const files = await tauri.fs.readDir(source.path, { recursive: source.includeSubfolders });
             const filePaths: string[] = [];
 
             const collectPaths = (entries: any[]) => {
-                for(const entry of entries) {
+                for (const entry of entries) {
                     if (entry.children) {
                         collectPaths(entry.children);
                     } else {
@@ -220,7 +220,7 @@ export const readSingleContextSource = async (source: IContextSource): Promise<s
                 content += await tauri.fs.readTextFile(path);
                 content += `\n\n`;
             }
-            
+
             content += `--- End of context from folder: "${source.remark}" ---`;
             return content;
         }
@@ -231,10 +231,10 @@ export const readSingleContextSource = async (source: IContextSource): Promise<s
 };
 
 export const readContextSources = async (sources: IContextSource[]): Promise<string> => {
-  if (sources.length === 0) return "";
-  const contentPromises = sources.map(source => readSingleContextSource(source));
-  const allContent = await Promise.all(contentPromises);
-  return allContent.join('\n\n');
+    if (sources.length === 0) return "";
+    const contentPromises = sources.map(source => readSingleContextSource(source));
+    const allContent = await Promise.all(contentPromises);
+    return allContent.join('\n\n');
 };
 
 export const getRawContextForInspection = async (source: IContextSource): Promise<string> => {
@@ -244,19 +244,19 @@ export const getRawContextForInspection = async (source: IContextSource): Promis
         }
 
         if (source.type === 'file') {
-             return await tauri.fs.readTextFile(source.path);
+            return await tauri.fs.readTextFile(source.path);
         } else { // 'folder'
             const fileContents: string[] = [];
             const files = await tauri.fs.readDir(source.path, { recursive: source.includeSubfolders });
             const filePaths: string[] = [];
 
             const collectPaths = (entries: any[]) => {
-                for(const entry of entries) {
+                for (const entry of entries) {
                     if (entry.children) {
                         collectPaths(entry.children);
                     } else {
                         if (!source.excludedPaths?.includes(entry.path)) {
-                             filePaths.push(entry.path);
+                            filePaths.push(entry.path);
                         }
                     }
                 }
@@ -272,7 +272,7 @@ export const getRawContextForInspection = async (source: IContextSource): Promis
             if (fileContents.length === 0) {
                 return "(This folder is empty or all files are excluded.)";
             }
-            
+
             return fileContents.join('\n\n');
         }
     } catch (e) {
@@ -281,42 +281,135 @@ export const getRawContextForInspection = async (source: IContextSource): Promis
     }
 };
 
+// --- Secure Storage (Keychain) Interface ---
+
+const invoke = (window as any).__TAURI__?.invoke;
+
+const setSecret = async (key: string, value: string): Promise<boolean> => {
+    if (!invoke) return false;
+    try {
+        const response: { success: boolean, error?: string } = await invoke('set_secret', { service: 'epitelos', key, value });
+        return response.success;
+    } catch (e) {
+        console.error(`Failed to set secret ${key}:`, e);
+        return false;
+    }
+};
+
+const getSecret = async (key: string): Promise<string | null> => {
+    if (!invoke) return null;
+    try {
+        const response: { success: boolean, data?: string, error?: string } = await invoke('get_secret', { service: 'epitelos', key });
+        return response.success ? response.data || null : null;
+    } catch (e) {
+        console.error(`Failed to get secret ${key}:`, e);
+        return null;
+    }
+};
+
+const deleteSecret = async (key: string): Promise<boolean> => {
+    if (!invoke) return false;
+    try {
+        const response: { success: boolean, error?: string } = await invoke('delete_secret', { service: 'epitelos', key });
+        return response.success;
+    } catch (e) {
+        console.error(`Failed to delete secret ${key}:`, e);
+        return false;
+    }
+};
+
+const SENSITIVE_FIELDS: (keyof ISettings)[] = [
+    'apiKey',
+    'geminiApiKey',
+    'openaiApiKey',
+    'customApiKey',
+    'maritacaApiKey'
+];
+
+
 // --- Profile & Session Management ---
 
 export const saveProfile = async (profileData: { settings: ISettings; contexts: IContextSource[] }): Promise<void> => {
-  await tauri.fs.writeTextFile(await getProfilePath(), JSON.stringify(profileData, null, 2));
+    // 1. Extract and save secrets to Keychain
+    const settings = { ...profileData.settings };
+    for (const field of SENSITIVE_FIELDS) {
+        const value = settings[field] as string;
+        if (value) {
+            await setSecret(field, value);
+            // 2. Remove from the settings object before saving to disk
+            // @ts-ignore - we want to remove the actual value but keep the type happy enough for saving
+            settings[field] = 'KEYCHAIN_STORED';
+        } else {
+            await deleteSecret(field);
+            // @ts-ignore
+            settings[field] = '';
+        }
+    }
+
+    const dataToSave = { ...profileData, settings };
+    await tauri.fs.writeTextFile(await getProfilePath(), JSON.stringify(dataToSave, null, 2));
 };
 
 export const loadProfile = async (): Promise<{ settings: ISettings; contexts: IContextSource[] } | null> => {
-  const path = await getProfilePath();
-  if (await tauri.fs.exists(path)) {
-    try {
-        const content = await tauri.fs.readTextFile(path);
-        return JSON.parse(content);
-    } catch (e) {
-        console.error("Failed to parse profile.json:", e);
-        return null;
+    const path = await getProfilePath();
+    if (await tauri.fs.exists(path)) {
+        try {
+            const content = await tauri.fs.readTextFile(path);
+            const profile = JSON.parse(content);
+            const settings = profile.settings as ISettings;
+
+            let migrated = false;
+
+            // 1. Fetch secrets from Keychain and migrate if necessary
+            for (const field of SENSITIVE_FIELDS) {
+                const valueInFile = settings[field] as string;
+                const secureValue = await getSecret(field);
+
+                if (valueInFile && valueInFile !== 'KEYCHAIN_STORED' && valueInFile !== '') {
+                    // MIGRATION: Secret found in plain text JSON. Move it to Keychain.
+                    console.log(`Migrating ${field} to secure storage...`);
+                    await setSecret(field, valueInFile);
+                    // @ts-ignore
+                    settings[field] = secureValue || valueInFile;
+                    migrated = true;
+                } else {
+                    // Standard load: fetch from Keychain
+                    // @ts-ignore
+                    settings[field] = secureValue || '';
+                }
+            }
+
+            if (migrated) {
+                // If we migrated something, save the cleaned-up profile immediately
+                console.log("Migration complete. Saving secured profile.");
+                await saveProfile({ settings, contexts: profile.contexts });
+            }
+
+            return { ...profile, settings };
+        } catch (e) {
+            console.error("Failed to parse profile.json:", e);
+            return null;
+        }
     }
-  }
-  return null; // Let App.tsx create a default one
+    return null; // Let App.tsx create a default one
 };
 
 export const saveSession = async (session: ISession): Promise<void> => {
-  await tauri.fs.writeTextFile(await getSessionPath(), JSON.stringify(session, null, 2));
+    await tauri.fs.writeTextFile(await getSessionPath(), JSON.stringify(session, null, 2));
 };
 
 export const loadSession = async (): Promise<ISession | null> => {
-  const path = await getSessionPath();
-  if (await tauri.fs.exists(path)) {
-    try {
-        const content = await tauri.fs.readTextFile(path);
-        return JSON.parse(content);
-    } catch(e) {
-        console.error("Failed to parse session.json:", e);
-        return null;
+    const path = await getSessionPath();
+    if (await tauri.fs.exists(path)) {
+        try {
+            const content = await tauri.fs.readTextFile(path);
+            return JSON.parse(content);
+        } catch (e) {
+            console.error("Failed to parse session.json:", e);
+            return null;
+        }
     }
-  }
-  return null;
+    return null;
 };
 
 export const clearSession = async (): Promise<void> => {

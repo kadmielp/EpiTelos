@@ -28,6 +28,58 @@ import * as maritacaService from './services/maritacaService';
 const isDesktop = !!window.__TAURI__;
 const fileService = isDesktop ? desktopFileService : webFileService;
 
+const playNotificationSound = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    const audioContext = new AudioContextClass();
+
+    const playTone = (freq: number, startTime: number, duration: number, volume: number) => {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(volume, startTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    };
+
+    const now = audioContext.currentTime;
+    // A soft, premium double-chime
+    playTone(659.25, now, 0.4, 0.05); // E5
+    playTone(880.00, now + 0.12, 0.5, 0.04); // A5
+  } catch (e) {
+    console.error("Failed to play notification sound", e);
+  }
+};
+
+const sendSystemNotification = async (title: string, body: string) => {
+  // @ts-ignore
+  if (isDesktop && window.__TAURI__) {
+    try {
+      // @ts-ignore
+      const permissionGranted = await window.__TAURI__.notification.isPermissionGranted();
+      if (!permissionGranted) {
+        // @ts-ignore
+        const permission = await window.__TAURI__.notification.requestPermission();
+        if (permission !== 'granted') return;
+      }
+      // @ts-ignore
+      window.__TAURI__.notification.sendNotification({ title, body });
+    } catch (e) {
+      console.error("Failed to send notification", e);
+    }
+  }
+};
+
 const useAppLogic = () => {
   const [currentView, setCurrentView] = useState<View>(View.Runner);
   const [functions, setFunctions] = useState<IAIFunction[]>([]);
@@ -156,24 +208,44 @@ const useAppLogic = () => {
     if (loadedProfile) {
       const migratedSettings = { ...DEFAULT_SETTINGS, ...loadedProfile.settings };
       setSettings(migratedSettings);
-      setUserAddedContexts(loadedProfile.contexts || []);
-    } else {
-      const defaultContexts: IContextSource[] = [
-        {
-          id: 'ctx-journal-sample',
-          path: '/contexts_sample/journal.md',
-          remark: 'My Daily Journal (Sample)',
+
+      const existingContexts = loadedProfile.contexts || [];
+      const newSamplePath = '/contexts_sample/Da Vinci - Milano - Automata Cavaliere (1495).md';
+      const hasNewSample = existingContexts.some((c: IContextSource) => c.path === newSamplePath);
+
+      let updatedContexts = [...existingContexts];
+
+      // Remove old samples if they exist in the persistent list to keep it clean
+      updatedContexts = updatedContexts.filter((c: IContextSource) =>
+        c.path !== '/contexts_sample/journal.md' &&
+        c.path !== '/contexts_sample/yearreview.md'
+      );
+
+      if (!hasNewSample) {
+        updatedContexts.push({
+          id: 'ctx-davinci-sample',
+          path: newSamplePath,
+          remark: 'Da Vinci Milano (1495) - Automata Cavaliere (Sample)',
           type: 'file',
           isHidden: false
-        },
+        });
+        // Save immediately so it persists
+        saveProfile(migratedSettings, updatedContexts);
+      }
+
+      setUserAddedContexts(updatedContexts);
+    } else {
+
+      const defaultContexts: IContextSource[] = [
         {
-          id: 'ctx-yearreview-sample',
-          path: '/contexts_sample/yearreview.md',
-          remark: '2023 Year In Review (Sample)',
+          id: 'ctx-davinci-sample',
+          path: '/contexts_sample/Da Vinci - Milano - Automata Cavaliere (1495).md',
+          remark: 'Da Vinci Milano (1495) - Automata Cavaliere (Sample)',
           type: 'file',
           isHidden: false
         },
       ];
+
       setSettings(DEFAULT_SETTINGS);
       setUserAddedContexts(defaultContexts);
       await saveProfile(DEFAULT_SETTINGS, defaultContexts);
@@ -466,6 +538,11 @@ const useAppLogic = () => {
     } finally {
       setIsLoading(false);
       abortControllerRef.current = null;
+      // Play notification sound when finished (and not aborted)
+      if (!controller.signal.aborted && settings.notificationEnabled) {
+        playNotificationSound();
+        sendSystemNotification("EpiTelos Intelligence", "AI process complete. Response is ready.");
+      }
     }
   };
 

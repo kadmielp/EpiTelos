@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
+## [1.5.0] - 2025-12-27
+
+### Added
+- **OS Native Keychain Integration**: Enhanced security for desktop users by migrating sensitive API keys from plain-text JSON files to the operating system's native secure storage (Windows Credential Manager, macOS Keychain).
+- **Hybrid Security Architecture**: Implementation of a dual-storage system where non-sensitive settings remain in `profile.json` while secrets are hardware-encrypted by the host OS.
+- **Transparent Migration Logic**: Added an automatic migration system that detects existing plain-text keys on startup, moves them to secure storage, and scrubs them from the local disk.
+
+
+### Changed
+- **Secure Persistence Logic**: Refactored `desktopFileService.ts` to coordinate between the file system and the secure keychain.
+- **Export/Import Logic**: Updated portability features to ensure API keys are retrieved from secure storage during export and properly re-secured upon import on a new machine.
+- **Sample Migration System**: Implemented logic to automatically transition existing users to the new sample content while cleaning up deprecated legacy files from the context manager.
+- **Replaced sample files**: Replaced legacy sample files.
+
+
+### Technical Notes
+- Integrated the `keyring` Rust crate into the Tauri backend.
+- Exposed `set_secret`, `get_secret`, and `delete_secret` commands to the frontend.
+- Added placeholder values (`KEYCHAIN_STORED`) in local JSON files to indicate secured status.
+
+## [1.4.9] - 2025-12-27
+
+
+### Added
+- **Native Notification System**: Integrated OS-level system notifications (Windows/macOS/Linux). Users now receive a native popup when AI generation completes, even if the app is in the background.
+- **Audible Chime**: Added a premium, non-intrusive double-chime synthesized via Web Audio API that triggers upon response completion.
+- **Notification Toggle**: New "Interface Preferences" section in Settings allows users to enable/disable both audible and system notifications.
+- **Click-to-Inspect**: Entire function cards in the Function Manager are now clickable triggers to view underlying system logic and architectures.
+
+### Changed
+- **Sidebar UI Overhaul**: Complete redesign of the sidebar with a deep-contrast, glassmorphic aesthetic. Includes refined navigation items with active glowing indicators and hover-state animations.
+- **Minimal Navigation**: Simplified the sidebar layout by removing "Navigation" and "Configuration" headers, creating a cleaner and more direct interface.
+- **Snappy Transitions**: Removed entry animations and delays from System Settings and Function Manager views for an instantaneous, high-performance feel.
+- **Sidebar Focus**: Disabled the status dot indicator on hover for unselected tabs, ensuring the active view remains the primary focal point.
+- **Modernized Manager Icons**: Replaced emojis in Function Manager and Context Manager empty states with professional BrainIcon assets.
+- **Toggle Refinement**: Standardized the geometry and animation of the settings toggle for better cross-browser consistency and visual polish.
+- **Terminology Refinement**: Updated sidebar labels to "Functions", "Context", and "System Settings" for improved scannability.
+- **Quantum Branding**: Updated branding under the logo to "AI assisted reflection" and refined the overall header typography.
+
+### Technical Notes
+- Enabled `notification` capability in `tauri.conf.json`.
+- Implemented real-time wave synthesis for notifications to ensure zero external dependencies.
+- Integrated `stopPropagation` on management controls to allow for card-wide click events without interaction conflicts.
+
 ## [1.4.0] - 2025-12-27
 
 ### Added
