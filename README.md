@@ -4,8 +4,6 @@
 
 EpiTelos is a premium, high-fidelity AI orchestration platform designed for personal growth and self-reflection. It enables you to process your own life data—journals, notes, CVs, and project files—through a library of specialized "Intelligence Modules" while maintaining total privacy through local model support.
 
-![EpiTelos](https://github.com/kadmielp/EpiTelos/blob/main/images/app.png)
-
 ---
 
 ## 🧭 The Core Pillars
@@ -16,6 +14,15 @@ EpiTelos is a premium, high-fidelity AI orchestration platform designed for pers
 | **Privacy First** | Hardware-encrypted OS Keychain storage for API keys and total local model support. |
 | **Intelligence orchestration** | Specialized system prompts directed at specific growth outcomes (e.g., "Find Blindspots"). |
 | **Contextual Awareness** | AI logic is fueled by your actual files, not generic training data. |
+
+---
+
+## Screenshots
+
+<img width="1000" src="images/run-ai.png"><img
+width="200" src="images/functions.png"><img
+width="200" src="images/context.png"><img
+width="200" src="images/settings.png">
 
 ---
 
