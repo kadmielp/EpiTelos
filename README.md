@@ -25,13 +25,7 @@ EpiTelos is a premium, high-fidelity AI orchestration platform designed for pers
 
 | <img src="images/functions.png" width="100%" alt="Functions Manager" /> | <img src="images/context.png" width="100%" alt="Context Manager" /> | <img src="images/settings.png" width="100%" alt="Settings Configuration" /> |
 | :---: | :---: | :---: |
-<<<<<<< HEAD
-| **Logic Library** | **Knowledge Context** | **Core Configuration** |
-=======
 | **Function Manager** | **Knowledge Context** | **Configuration** |
->>>>>>> 2f35d39c53ec220224cc1a0e8d5932792a8b0ff8
-
----
 
 ## 📖 Component Documentation
 
