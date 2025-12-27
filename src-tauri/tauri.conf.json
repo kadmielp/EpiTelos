@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "EpiTelos",
-    "version": "1.1.3"
+    "version": "1.4.0"
   },
   "tauri": {
     "allowlist": {
@@ -18,7 +18,10 @@
       },
       "fs": {
         "all": true,
-        "scope": ["$APP/*", "**"]
+        "scope": [
+          "$APP/*",
+          "**"
+        ]
       },
       "path": {
         "all": true
@@ -26,14 +29,21 @@
       "http": {
         "all": true,
         "request": true,
-        "scope": ["http://localhost:11434/*", "https://**", "https://chat.maritaca.ai/**"]
+        "scope": [
+          "http://localhost:11434/*",
+          "https://**",
+          "https://chat.maritaca.ai/**"
+        ]
       }
     },
     "bundle": {
       "active": true,
       "targets": "all",
       "identifier": "com.epitelos.dev",
-      "icon": ["icons/icon.ico", "icons/icon.svg"]
+      "icon": [
+        "icons/icon.ico",
+        "icons/icon.svg"
+      ]
     },
     "security": {
       "csp": null

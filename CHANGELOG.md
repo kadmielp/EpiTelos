@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
+## [1.4.0] - 2025-12-27
+
+### Added
+- **Reasoning Model Support**: Full support for reasoning models like DeepSeek R1. The application now properly captures and displays the model's chain-of-thought reasoning process.
+- **Collapsible Thinking Blocks**: When "Show Reasoning" is enabled during a run, the model's thinking process is displayed in a clean, collapsible block above the response. The block is collapsed by default to keep the focus on the answer.
+- **Live Reasoning Preview**: During streaming, thinking content is displayed in real-time with a "Reasoning in progress..." indicator, allowing users to observe the model's thought process as it happens.
+- **True Streaming for Ollama**: Implemented priority-based streaming that attempts standard `fetch` first for real-time token-by-token streaming, falling back to Tauri's buffered HTTP only when necessary.
+
+### Changed
+- **Show Reasoning Behavior**: The toggle now only controls whether reasoning is *captured* during a run, not whether existing reasoning is displayed. Once a response includes reasoning, the collapsible block will always appear regardless of the current toggle state.
+- **Ollama Response Handling**: Updated the Ollama service to properly handle the separate `thinking` field returned by DeepSeek R1 and similar models, wrapping it appropriately for display.
+- **Reasoning Display**: Removed emoji from thinking block header. Now uses a subtle brain icon with "Reasoning Process" label for a more professional appearance.
+
+### Technical Notes
+- The Ollama service now detects models that output reasoning in a dedicated `thinking` JSON field (vs. `<think>` tags in `response`).
+- Streaming prioritizes browser-native `ReadableStream` for optimal performance, with Tauri fallback for environments where standard fetch fails.
+
 ## [1.3.0] - 2025-12-27
 
 ### Added

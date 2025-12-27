@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { IAIFunction, IContextSource, TreeNode } from '../types';
 import Markdown from 'react-markdown';
 import { SaveIcon } from './icons/SaveIcon';
@@ -13,6 +13,35 @@ import { CopyIcon } from './icons/CopyIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { PlayIcon } from './icons/PlayIcon';
 import { BrainIcon } from './icons/BrainIcon';
+
+// Collapsible Thinking Block Component
+const ThinkingBlock: React.FC<{ content: string }> = ({ content }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="mb-4 border border-slate-700/50 rounded-xl overflow-hidden bg-slate-900/30">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-800/30 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <BrainIcon className="w-4 h-4 text-purple-400" />
+          <span className="text-sm font-semibold text-slate-400">Reasoning Process</span>
+        </div>
+        <ChevronDownIcon
+          className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {isExpanded && (
+        <div className="px-4 pb-4 border-t border-slate-700/30">
+          <pre className="text-xs text-slate-500 whitespace-pre-wrap font-mono leading-relaxed mt-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+            {content}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface FunctionRunnerProps {
   functions: IAIFunction[];
@@ -78,6 +107,26 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
   const [functionSearchQuery, setFunctionSearchQuery] = useState('');
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const functionDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Parse response to extract thinking blocks
+  const parsedResponse = useMemo(() => {
+    if (!aiResponse) return { thinkingContent: null, mainContent: '' };
+
+    const thinkMatch = aiResponse.match(/<think>([\s\S]*?)<\/think>/);
+    if (thinkMatch) {
+      const thinkingContent = thinkMatch[1].trim();
+      const mainContent = aiResponse.replace(/<think>[\s\S]*?<\/think>\s*/, '').trim();
+      return { thinkingContent, mainContent };
+    }
+
+    // Check if thinking is still in progress (has opening tag but no closing tag)
+    if (aiResponse.includes('<think>') && !aiResponse.includes('</think>')) {
+      const thinkingContent = aiResponse.replace('<think>', '').trim();
+      return { thinkingContent, mainContent: '', isThinkingInProgress: true };
+    }
+
+    return { thinkingContent: null, mainContent: aiResponse };
+  }, [aiResponse]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -497,17 +546,41 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
                 </div>
               </div>
             ) : aiResponse ? (
-              <div className="prose prose-invert prose-slate prose-sm max-w-none 
-                prose-headings:font-black prose-headings:tracking-tight prose-headings:text-white
-                prose-p:text-slate-300 prose-p:leading-relaxed
-                prose-strong:text-blue-400 prose-strong:font-bold
-                prose-code:text-emerald-400 prose-code:bg-emerald-500/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
-                prose-pre:bg-slate-950 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-2xl prose-pre:shadow-2xl
-                prose-li:text-slate-400
-                prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-500/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-xl
-                animate-in fade-in duration-700
-              ">
-                <Markdown>{aiResponse}</Markdown>
+              <div className="animate-in fade-in duration-700">
+                {/* Always show thinking block if there's thinking content (collapsed by default) */}
+                {/* The showReasoning toggle only controls whether reasoning is captured during run, not display */}
+                {parsedResponse.thinkingContent && (
+                  parsedResponse.isThinkingInProgress ? (
+                    // Thinking in progress - show live thinking with indicator
+                    <div className="mb-4 border border-purple-500/30 rounded-xl overflow-hidden bg-slate-900/50">
+                      <div className="px-4 py-3 flex items-center gap-2 border-b border-purple-500/20">
+                        <BrainIcon className="w-4 h-4 text-purple-400 animate-pulse" />
+                        <span className="text-sm font-semibold text-purple-400">Reasoning in progress...</span>
+                      </div>
+                      <pre className="px-4 py-3 text-xs text-slate-400 whitespace-pre-wrap font-mono leading-relaxed max-h-[300px] overflow-y-auto custom-scrollbar">
+                        {parsedResponse.thinkingContent}
+                      </pre>
+                    </div>
+                  ) : (
+                    // Thinking complete - show collapsible block
+                    <ThinkingBlock content={parsedResponse.thinkingContent} />
+                  )
+                )}
+
+                {/* Main response content */}
+                {parsedResponse.mainContent && (
+                  <div className="prose prose-invert prose-slate prose-sm max-w-none 
+                    prose-headings:font-black prose-headings:tracking-tight prose-headings:text-white
+                    prose-p:text-slate-300 prose-p:leading-relaxed
+                    prose-strong:text-blue-400 prose-strong:font-bold
+                    prose-code:text-emerald-400 prose-code:bg-emerald-500/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
+                    prose-pre:bg-slate-950 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-2xl prose-pre:shadow-2xl
+                    prose-li:text-slate-400
+                    prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-500/5 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-xl
+                  ">
+                    <Markdown>{parsedResponse.mainContent}</Markdown>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center opacity-40">

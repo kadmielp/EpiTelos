@@ -48,7 +48,13 @@ With EpiTelos, you can gain clarity and grow using your own life as context. For
 EpiTelos supports multiple AI model providers, giving you full control over cost, privacy, and capability.
 - **Provider-Specific Memory**: The system remembers your preferred model for each provider. Switching from OpenAI to Ollama (and back) automatically restores your last-used model for that source.
 - **Dynamic Model Fetching**: Deeply integrated discovery of available models after successful connection verification.
-- **Multi-Source Architecture**: Full support for Ollama, Maritaca AI, OpenAI, Gemini, and Custom OpenAI-compatible endpoints.
+- **Multi-Source Architecture**: Full support for:
+  - **Ollama** – Local AI models for maximum privacy
+  - **Maritaca AI** – Access the Sabiá family of Brazilian Portuguese models with automatic endpoint configuration
+  - **OpenAI** – GPT-4, GPT-4o, and other OpenAI models
+  - **Gemini** – Google's Gemini models via API
+  - **Custom Providers** – Any OpenAI-compatible API endpoint (Anthropic Claude, local servers, etc.)
+- **Reasoning Model Support**: Full support for chain-of-thought models like DeepSeek R1. When "Show Reasoning" is enabled, the model's thinking process is displayed in a collapsible block above the final response.
 - **Environmental Parity**: All providers work seamlessly in both web and desktop environments.
 
 ### 5. Premium Configuration & Session Management
@@ -61,7 +67,7 @@ EpiTelos supports multiple AI model providers, giving you full control over cost
 - **Frontend**: React, TypeScript, Vite
 - **Styling**: Tailwind CSS
 - **Desktop Framework**: Tauri
-- **AI Integration**: Official and custom clients for Gemini, OpenAI, and Ollama APIs.
+- **AI Integration**: Official and custom clients for Gemini, OpenAI, Ollama, and Maritaca APIs.
 
 ## 🧑‍💻 Development Guide
 

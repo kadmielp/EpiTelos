@@ -309,6 +309,7 @@ const useAppLogic = () => {
     const fullUserPrompt = `${contextContent}\n\n--- USER INPUT ---\n${userInput}`;
 
     try {
+
       if (isStreaming) {
         const streamParams = {
           systemPrompt: func.systemPrompt,
@@ -391,7 +392,7 @@ const useAppLogic = () => {
             setAiResponse(fullResponse);
           }
         } else {
-          // No tag stripping
+          // No tag stripping - showReasoning is ON
           for await (const chunk of stream) {
             if (controller.signal.aborted) break;
             fullResponse += chunk;
