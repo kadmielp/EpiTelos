@@ -1,6 +1,14 @@
-# EpiTelos - Personal Development AI
-
-![GitHub top language](https://img.shields.io/github/languages/top/kadmielp/EpiTelos) ![GitHub language count](https://img.shields.io/github/languages/count/kadmielp/EpiTelos) ![GitHub repo size](https://img.shields.io/github/repo-size/kadmielp/EpiTelos) ![GitHub last commit](https://img.shields.io/github/last-commit/kadmielp/EpiTelos)
+<p align="center">
+  <img src="images/logo.png" alt="Logo" width="128" />
+</p>
+<p align="center">
+  <img src="https://img.shields.io/github/languages/top/kadmielp/EpiTelos" alt="GitHub top language" />
+  <img src="https://img.shields.io/github/languages/count/kadmielp/EpiTelos" alt="GitHub language count" />
+  <img src="https://img.shields.io/github/repo-size/kadmielp/EpiTelos" alt="GitHub repo size" />
+  <img src="https://img.shields.io/github/last-commit/kadmielp/EpiTelos" alt="GitHub last commit" />
+  <img alt="GitHub License" src="https://img.shields.io/github/license/kadmielp/EpiTelos">
+</p>
+<h1 align="center">EpiTelos - Personal Development AI</h1>
 
 EpiTelos is a premium, high-fidelity AI orchestration platform designed for personal growth and self-reflection. It enables you to process your own life data—journals, notes, CVs, and project files—through a library of specialized "Intelligence Modules" while maintaining total privacy through local model support.
 

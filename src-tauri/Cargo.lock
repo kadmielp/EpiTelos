@@ -993,7 +993,7 @@ dependencies = [
 
 [[package]]
 name = "epitelos"
-version = "1.5.0"
+version = "1.5.7"
 dependencies = [
  "futures-util",
  "keyring",
