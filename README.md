@@ -96,3 +96,7 @@ The build process will automatically index these into the application manifest.
 
 ## ⚠️ Disclaimer
 EpiTelos is a prototype provided "as is". The developers are not responsible for any consequences arising from usage. Always verify AI outputs for accuracy, especially regarding personal or professional decisions.
+
+---
+
+This project is inspired by the concepts of [Fabric](https://github.com/danielmiessler/Fabric) and [Telos](https://github.com/danielmiessler/Telos).
