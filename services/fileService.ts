@@ -60,6 +60,8 @@ export const saveFunction = async (func: Partial<IAIFunction>): Promise<void> =>
       id: `func-custom-${Date.now()}`,
       name: func.name || 'Untitled Function',
       systemPrompt: func.systemPrompt || '',
+      description: func.description,
+      category: func.category,
       isCustom: true,
     };
     customFuncs.push(newFunc);

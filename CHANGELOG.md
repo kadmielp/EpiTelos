@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
+1.5.8
+## [1.5.8] - 2025-12-30
+
+### Added
+- **Project Management Utility Belt**: Introduced a NEW category "Project Management" with 5 expert-level functions:
+  - **Stakeholder Communication Matrix**: Translates raw updates into targeted messaging for Executives, Clients, and Developers.
+  - **GSD (Get Shit Done) Prioritizer**: Ranks backlog items using MoSCoW and ICE (Impact, Confidence, Ease) scoring.
+  - **WBS Architect**: Decomposes project goals into a hierarchical 3-level Work Breakdown Structure.
+  - **User Story Factory**: Generates professional Agile User Stories with Gherkin-style Acceptance Criteria.
+  - **Project Post-Mortem Analyzer**: Performs root-cause analysis via "The Five Whys" and extracts strategic lessons learned.
+- **Interpersonal & Psychology Enhancement**: Added the **Resolve Conflict** function to analyze conflict scenarios and provide strategic scripts, tactical empathy, and boundary-setting advice.
+- **Dynamic Category Prioritization**: Re-engineered the function selection dropdown to prioritize metadata-defined categories over the generic "Custom Intelligence" grouping. Custom functions now seamlessly integrate into existing categories (e.g., "Interpersonal & Psychology") if specified.
+
+### Fixed
+- **Custom Function Metadata Persistence**: Resolved a synchronization issue where `category` and `description` fields for newly created custom functions were not being saved to local storage.
+- **Logical Defaulting**: Refined the UI logic to provide intelligent category fallbacks: custom functions without a category now default to "Custom Intelligence", while built-in functions default to "General".
+
+### Technical Notes
+- Updated `FunctionRunner.tsx` to handle conditional category grouping.
+- Patched `fileService.ts` to ensure full `IAIFunction` object serialization during create/save operations.
 
 ## [1.5.7] - 2025-12-27
 

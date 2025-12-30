@@ -406,7 +406,7 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
                     <div className="flex-grow overflow-y-auto custom-scrollbar p-2 space-y-4">
                       {Object.entries(
                         filteredFunctions.reduce((acc, f) => {
-                          const cat = f.isCustom ? 'Custom Intelligence' : (f.category || 'General');
+                          const cat = f.category || (f.isCustom ? 'Custom Intelligence' : 'General');
                           if (!acc[cat]) acc[cat] = [];
                           acc[cat].push(f);
                           return acc;
