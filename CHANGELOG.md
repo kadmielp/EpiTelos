@@ -4,7 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
-1.5.8
+
+## [1.5.9] - 2026-01-02
+
+### Fixed
+- **Offline Layout Rendering**: Resolved a critical issue where the application UI failed to load when offline. The root cause was TailwindCSS being loaded from a CDN (`cdn.tailwindcss.com`), which broke all utility-class styling without internet access.
+
+### Changed
+- **Local-First Architecture**: Migrated TailwindCSS from CDN to local npm installation with proper build-time processing. The app now works completely offline, aligning with the local-first design philosophy for local LLM usage.
+- **Cleaner Build Configuration**: Removed unused `importmap` block from `index.html` that pointed to esm.sh CDN endpoints. Dependencies are now properly bundled via Vite.
+
+### Technical Notes
+- Added `tailwindcss`, `postcss`, `autoprefixer`, and `@tailwindcss/typography` as dev dependencies.
+- Created `tailwind.config.js`, `postcss.config.js`, and `index.css` for proper Tailwind integration.
+- Custom scrollbar styles moved from inline `<style>` block to `index.css`.
+
 ## [1.5.8] - 2025-12-30
 
 ### Added
