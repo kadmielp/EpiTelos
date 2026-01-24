@@ -3,15 +3,20 @@
 </p>
 <p align="center">
   <img src="https://img.shields.io/github/languages/top/kadmielp/EpiTelos" alt="GitHub top language" />
-  <img src="https://img.shields.io/github/languages/count/kadmielp/EpiTelos" alt="GitHub language count" />
   <img src="https://img.shields.io/github/repo-size/kadmielp/EpiTelos" alt="GitHub repo size" />
   <img src="https://img.shields.io/github/last-commit/kadmielp/EpiTelos" alt="GitHub last commit" />
   <img alt="GitHub License" src="https://img.shields.io/github/license/kadmielp/EpiTelos">
+  <img alt="Vibecoded" src="https://img.shields.io/badge/vibecoded-yes-8A2BE2">
 </p>
 <h1 align="center">EpiTelos - Personal Development AI</h1>
+<p align="center">EpiTelos is an AI orchestration platform designed for personal growth and self-reflection, especially for people who journal regularly</p>
 
-EpiTelos is a premium, high-fidelity AI orchestration platform designed for personal growth and self-reflection. It enables you to process your own life data—journals, notes, CVs, and project files—through a library of specialized "Intelligence Modules" while maintaining total privacy through local model support.
+---
 
+## Who is EpiTelos for
+- People who already journal (daily notes, mood logs, or long-form reflections).
+- Knowledge workers who keep detailed notes and want AI help spotting patterns.
+- Anyone who wants a private, local-first AI partner for deep life reflection rather than a generic chat bot.
 ---
 
 ## 🧭 The Core Pillars
@@ -95,7 +100,7 @@ The build process will automatically index these into the application manifest.
 ---
 
 ## ⚠️ Disclaimer
-EpiTelos is a prototype provided "as is". The developers are not responsible for any consequences arising from usage. Always verify AI outputs for accuracy, especially regarding personal or professional decisions.
+EpiTelos is a prototype provided "as is". The author is not responsible for any consequences arising from usage. Always verify AI outputs for accuracy, especially regarding personal or professional decisions.
 
 ---
 
