@@ -5,7 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
-## [1.5.9] - 2026-01-02
+## [1.6.0] - 2026-02-15
+
+### Added
+- **Architectural Refactoring**: Modularized the entire application logic into specialized React Hooks (`useAIProvider`, `useAppProfile`, `useContextManager`, `useFunctions`).
+- **Component Decomposition**: Decomposed monolithic components (`App`, `FunctionRunner`, `Settings`) into focused sub-components.
+- **Service Layer Migration**: Centralized system notifications and audible alerts into a new `notificationService.ts`.
+- **Reasoning Block UI**: Dedicated `ThinkingBlock` component for collapsible AI chain-of-thought displays with smooth grid animations.
+- **Visualization Core**: Isolated `MermaidDiagram` component with enhanced dark-theme styling.
+- **Platform Intelligence**: Orchestrated a centralized platform service to unify Desktop (Tauri) vs Web logic.
+- **Maritaca & Custom Providers**: Added dedicated configuration fields for Maritaca (fixed cloud URL) and Custom providers (Base URL + API Key).
+
+### Fixed
+- **Vulnerability Patch**: Resolved moderate severity issues in `lodash-es` by forcing version `4.17.23` via package overrides.
+- **Tauri Development Readiness**: Configured local environment pathing to support native Rust compilation within the Tauri dev loop.
+
+### Changed
+- **Performance Optimization**: Refined Tailwind CSS content scanning to exclude `node_modules`, significantly improving HMR and build speeds.
+- **UI Component Model**: Switched from monolithic view controllers to a clean, declarative component architecture.
+- **Visual Polish**: Unified scrollbar styling across all platforms and optimized global animation durations.
+24: 
 
 ### Fixed
 - **Offline Layout Rendering**: Resolved a critical issue where the application UI failed to load when offline. The root cause was TailwindCSS being loaded from a CDN (`cdn.tailwindcss.com`), which broke all utility-class styling without internet access.

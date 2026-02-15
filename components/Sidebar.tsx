@@ -104,9 +104,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView })
           </nav>
         </div>
 
-        {/* Footer Section */}
         <div className="mt-auto pt-6 text-center">
-          <p className="text-[8px] text-slate-600 font-black uppercase tracking-[0.2em] mb-1">v1.5.9</p>
+          <p className="text-[8px] text-slate-600 font-black uppercase tracking-[0.2em] mb-1">v1.6.0</p>
 
           <p className="text-[8px] text-slate-700 font-black uppercase tracking-[0.2em] opacity-50">&copy; 2025 EpiTelos</p>
         </div>

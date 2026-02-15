@@ -1,10 +1,9 @@
 import { useState, useCallback } from 'react';
 import { IAIFunction } from '../types';
+import { isDesktop } from '../services/platform';
 import * as webFileService from '../services/fileService';
 import * as desktopFileService from '../services/desktopFileService';
 
-// @ts-ignore
-const isDesktop = !!window.__TAURI__;
 const fileService = isDesktop ? desktopFileService : webFileService;
 
 export const useFunctions = () => {

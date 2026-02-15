@@ -157,36 +157,6 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
         </main>
       </div>
 
-      {/* Global CSS for Markdown & Scrollbars */}
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 20px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.3); }
-        .animate-in { animation: 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
-        .fade-in { animation-name: fade-in; }
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        
-        pre code {
-          font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
-          font-size: 0.85rem !important;
-        }
-
-        .prose table {
-          width: 100%; border-collapse: separate; border-spacing: 0; margin: 2rem 0;
-          border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; overflow: hidden;
-          background: rgba(255, 255, 255, 0.02); box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
-        }
-        .prose th {
-          color: #60a5fa !important; font-weight: 800 !important; text-transform: uppercase;
-          font-size: 0.7rem !important; letter-spacing: 0.1em; padding: 1rem 1.5rem !important;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; text-align: left !important;
-        }
-        .prose td {
-          padding: 1rem 1.5rem !important; border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
-          font-size: 0.85rem !important; color: rgba(255, 255, 255, 0.8) !important;
-        }
-      `}</style>
 
       {/* System Prompt Modal */}
       {selectedFunction && (

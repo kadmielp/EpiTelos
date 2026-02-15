@@ -245,9 +245,17 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-slate-900 text-slate-200">
+    <div className="flex h-screen w-screen bg-slate-900 text-slate-200 selection:bg-blue-500/20">
       <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
-      <main className="flex-1 overflow-hidden">{renderView()}</main>
+
+      <main className="flex-1 overflow-hidden relative">
+        <div
+          key={currentView}
+          className="h-full w-full animate-slide-up"
+        >
+          {renderView()}
+        </div>
+      </main>
 
       <Modal
         isOpen={isInspectModalOpen}

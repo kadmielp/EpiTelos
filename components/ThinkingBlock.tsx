@@ -23,13 +23,17 @@ export const ThinkingBlock: React.FC<ThinkingBlockProps> = React.memo(({ content
                     className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                 />
             </button>
-            {isExpanded && (
-                <div className="px-4 pb-4 border-t border-slate-700/30">
-                    <pre className="text-xs text-slate-500 whitespace-pre-wrap font-mono leading-relaxed mt-3 max-h-[400px] overflow-y-auto custom-scrollbar">
-                        {content}
-                    </pre>
+            <div
+                className={`grid transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+            >
+                <div className="overflow-hidden border-t border-slate-700/30">
+                    <div className="px-4 pb-4">
+                        <pre className="text-xs text-slate-500 whitespace-pre-wrap font-mono leading-relaxed mt-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+                            {content}
+                        </pre>
+                    </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 });

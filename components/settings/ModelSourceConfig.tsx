@@ -29,8 +29,8 @@ export const ModelSourceConfig: React.FC<ModelSourceConfigProps> = ({
                         key={source}
                         onClick={() => updateSettings({ modelSource: source })}
                         className={`px-4 py-3 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest ${settings.modelSource === source
-                                ? 'bg-blue-600/20 border-blue-500 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)]'
-                                : 'bg-white/5 border-white/5 text-slate-500 hover:border-white/10 hover:bg-white/10'
+                            ? 'bg-blue-600/20 border-blue-500 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)]'
+                            : 'bg-white/5 border-white/5 text-slate-500 hover:border-white/10 hover:bg-white/10'
                             }`}
                     >
                         {source}
@@ -80,7 +80,45 @@ export const ModelSourceConfig: React.FC<ModelSourceConfigProps> = ({
                     </div>
                 )}
 
-                {/* ... Other sources handled similarly ... */}
+                {settings.modelSource === 'Maritaca' && (
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Maritaca API Key</label>
+                            <input
+                                type="password"
+                                placeholder="Enter Maritaca key"
+                                value={settings.maritacaApiKey || ''}
+                                onChange={(e) => updateSettings({ maritacaApiKey: e.target.value })}
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {settings.modelSource === 'Custom' && (
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Base URL</label>
+                            <input
+                                type="text"
+                                placeholder="https://api.example.com/v1"
+                                value={settings.customApiUrl || ''}
+                                onChange={(e) => updateSettings({ customApiUrl: e.target.value })}
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">API Key</label>
+                            <input
+                                type="password"
+                                placeholder="sk-..."
+                                value={settings.customApiKey || ''}
+                                onChange={(e) => updateSettings({ customApiKey: e.target.value })}
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 <div className="pt-2 flex items-center justify-between">
                     <button
@@ -92,11 +130,11 @@ export const ModelSourceConfig: React.FC<ModelSourceConfigProps> = ({
 
                     {verificationStatus && (
                         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${verificationStatus.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                                verificationStatus.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                                    'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                            verificationStatus.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
+                                'bg-blue-500/10 border-blue-500/20 text-blue-400'
                             }`}>
                             <div className={`w-1.5 h-1.5 rounded-full ${verificationStatus.type === 'success' ? 'bg-emerald-500 animate-pulse' :
-                                    verificationStatus.type === 'error' ? 'bg-red-500' : 'bg-blue-500 animate-spin'
+                                verificationStatus.type === 'error' ? 'bg-red-500' : 'bg-blue-500 animate-spin'
                                 }`} />
                             <span className="text-[10px] font-bold uppercase tracking-widest">{verificationStatus.message}</span>
                         </div>

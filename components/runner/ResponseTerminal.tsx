@@ -103,7 +103,7 @@ export const ResponseTerminal: React.FC<ResponseTerminalProps> = ({
                         </div>
                     </div>
                 ) : aiResponse ? (
-                    <div className="animate-in fade-in duration-700">
+                    <div className="animate-fade-in duration-700">
                         {parsedResponse.thinkingContent && (
                             parsedResponse.isThinkingInProgress ? (
                                 <div className="mb-4 border border-purple-500/30 rounded-xl overflow-hidden bg-slate-900/50">

@@ -38,6 +38,8 @@ interface RunMaritacaOptions {
     signal?: AbortSignal;
 }
 
+const DEFAULT_MARITACA_URL = 'https://chat.maritaca.ai/api';
+
 const handleFetchError = (error: Error, apiUrl: string): string => {
     if (error.message.includes('Failed to fetch')) {
         return `Connection to Maritaca (${apiUrl}) failed. This is likely due to the provider's CORS policy, a network error, or an invalid URL. CORS is a security feature in browsers that may block this request. This connection is expected to work in a desktop app environment.`;
@@ -46,11 +48,12 @@ const handleFetchError = (error: Error, apiUrl: string): string => {
 };
 
 export const runMaritacaFunction = async ({ systemPrompt, userPrompt, model, apiKey, apiUrl, signal }: RunMaritacaOptions): Promise<string> => {
-    if (!apiKey || !apiUrl) {
-        return Promise.reject(new Error("Maritaca API URL or Key is not configured."));
+    const effectiveUrl = apiUrl || DEFAULT_MARITACA_URL;
+    if (!apiKey) {
+        return Promise.reject(new Error("Maritaca API Key is not configured."));
     }
 
-    const fullApiUrl = `${apiUrl}/chat/completions`;
+    const fullApiUrl = `${effectiveUrl}/chat/completions`;
     const requestBody = {
         model: model,
         messages: [
@@ -109,17 +112,18 @@ export const runMaritacaFunction = async ({ systemPrompt, userPrompt, model, api
     } catch (error) {
         console.error("Error calling Maritaca API:", error);
         if (error instanceof Error) {
-            return handleFetchError(error, apiUrl);
+            return handleFetchError(error, effectiveUrl);
         }
         return "An unknown error occurred while communicating with Maritaca.";
     }
 };
 
 export async function* runMaritacaFunctionStream({ systemPrompt, userPrompt, model, apiKey, apiUrl, signal }: RunMaritacaOptions): AsyncGenerator<string> {
-    if (!apiKey || !apiUrl) {
-        throw new Error("Maritaca API URL or Key is not configured.");
+    const effectiveUrl = apiUrl || DEFAULT_MARITACA_URL;
+    if (!apiKey) {
+        throw new Error("Maritaca API Key is not configured.");
     }
-    const fullApiUrl = `${apiUrl}/chat/completions`;
+    const fullApiUrl = `${effectiveUrl}/chat/completions`;
     const requestBody = {
         model: model,
         messages: [
@@ -243,11 +247,12 @@ export async function* runMaritacaFunctionStream({ systemPrompt, userPrompt, mod
 }
 
 export const verifyConnection = async (apiUrl: string, apiKey: string): Promise<{ success: boolean; message: string }> => {
-    if (!apiUrl || !apiKey) {
-        return { success: false, message: "Maritaca API URL or Key is missing." };
+    const effectiveUrl = apiUrl || DEFAULT_MARITACA_URL;
+    if (!apiKey) {
+        return { success: false, message: "Maritaca API Key is missing." };
     }
 
-    const fullApiUrl = `${apiUrl}/models`;
+    const fullApiUrl = `${effectiveUrl}/models`;
 
     try {
         // @ts-ignore
@@ -289,7 +294,7 @@ export const verifyConnection = async (apiUrl: string, apiKey: string): Promise<
     } catch (error) {
         console.error("Maritaca connection verification failed:", error);
         if (error instanceof Error) {
-            const friendlyMessage = handleFetchError(error, apiUrl);
+            const friendlyMessage = handleFetchError(error, effectiveUrl);
             return { success: false, message: friendlyMessage };
         }
         return { success: false, message: "An unknown error occurred during verification." };
@@ -298,16 +303,12 @@ export const verifyConnection = async (apiUrl: string, apiKey: string): Promise<
 
 
 export const getModels = async (apiUrl: string, apiKey: string): Promise<string[]> => {
-    if (!apiUrl || !apiKey) {
-        return Promise.reject(new Error("Maritaca API URL or Key is missing."));
+    const effectiveUrl = apiUrl || DEFAULT_MARITACA_URL;
+    if (!apiKey) {
+        return Promise.reject(new Error("Maritaca API Key is missing."));
     }
 
-    // Maritaca doesn't always have a standard /models endpoint that returns exactly what we expect 
-    // but we can try /api/chat/models or /api/models based on docs.
-    // The search said both /api/chat/models and /api/models are GET.
-    // Since we use /api as base, let's try /models first.
-
-    const fullApiUrl = `${apiUrl}/models`;
+    const fullApiUrl = `${effectiveUrl}/models`;
 
     try {
         // @ts-ignore

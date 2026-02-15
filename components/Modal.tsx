@@ -42,12 +42,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
     >
       {/* Dynamic Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-500"
+        className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-fade-in"
         onClick={handleBackdropClick}
       />
 
       <div
-        className="bg-slate-900/80 backdrop-blur-3xl rounded-[32px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] p-8 w-full max-w-4xl m-4 relative z-10 transform animate-in zoom-in-95 fade-in duration-300 ease-out"
+        className="bg-slate-900/80 backdrop-blur-3xl rounded-[32px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] p-8 w-full max-w-4xl m-4 relative z-10 transform animate-zoom-95"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-start mb-8">
@@ -71,14 +71,6 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
           {children}
         </div>
       </div>
-
-      <style>{`
-        @keyframes zoom-in-95 { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        .animate-in { animation: 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
-        .zoom-in-95 { animation-name: zoom-in-95; }
-        .fade-in { animation-name: fade-in; }
-      `}</style>
     </div>
   );
 };
