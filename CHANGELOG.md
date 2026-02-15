@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
+## [1.6.1] - 2026-02-15
+
+### Added
+- **Intelligent History Organization**: Archives are now grouped by date (Today, Yesterday, This Week, etc.) with sticky headers and a custom divider layout.
+- **Keyboard Navigation**: Implemented full keyboard support in History (Arrows for selection, `Delete` for removal, `Enter` for restoration, `Esc` to cancel).
+- **History Inspection**: Context chips in Archives are now clickable, opening the inspection modal just like in the Run AI view.
+- **Delete Confirmation Workflow**: Added an animated, non-disruptive confirmation toast for deletions to prevent accidental loss of archives.
+- **Export to Markdown**: Implemented a "Export .MD" feature in History with native Tauri file dialog support.
+
+### Changed
+- **Visual Feedback System**: Copy buttons now provide clear "Copied!" feedback text upon interaction.
+- **History-Run AI Synchronization**: Archives now display the exact same "remark" (friendly name) as seen in the Control Hub, ensuring visual consistency.
+- **Reasoning Integration**: Re-engineered the History view to host reasoning inside the `ResponseTerminal`, matching the native AI streaming experience.
+- **Improved Filename Recovery**: Smarter logic for decoding technical filenames in legacy archives.
+
 ## [1.6.0] - 2026-02-15
 
 ### Added

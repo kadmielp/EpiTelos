@@ -1,6 +1,8 @@
 
-import { IAIFunction, IContextSource, ISettings } from '../types';
+import { IAIFunction, IContextSource, ISettings, IArchive } from '../types';
 import { PROFILE_STORAGE_KEY, SESSION_STORAGE_KEY, DEFAULT_SETTINGS } from '../constants';
+
+const ARCHIVES_STORAGE_KEY = 'epitelos_archives';
 
 /**
  * NOTE: This service mocks local file system interactions.
@@ -178,3 +180,25 @@ export const loadSession = async (): Promise<any | null> => {
 export const clearSession = async (): Promise<void> => {
   localStorage.removeItem(SESSION_STORAGE_KEY);
 }
+
+// --- Intelligence Archives ---
+
+export const saveArchive = async (archive: IArchive): Promise<void> => {
+  const archivesJson = localStorage.getItem(ARCHIVES_STORAGE_KEY);
+  let archives: IArchive[] = archivesJson ? JSON.parse(archivesJson) : [];
+  archives.unshift(archive);
+  localStorage.setItem(ARCHIVES_STORAGE_KEY, JSON.stringify(archives));
+};
+
+export const getArchives = async (): Promise<IArchive[]> => {
+  const archivesJson = localStorage.getItem(ARCHIVES_STORAGE_KEY);
+  return archivesJson ? JSON.parse(archivesJson) : [];
+};
+
+export const deleteArchive = async (id: string): Promise<void> => {
+  const archivesJson = localStorage.getItem(ARCHIVES_STORAGE_KEY);
+  if (!archivesJson) return;
+  let archives: IArchive[] = JSON.parse(archivesJson);
+  archives = archives.filter(a => a.id !== id);
+  localStorage.setItem(ARCHIVES_STORAGE_KEY, JSON.stringify(archives));
+};

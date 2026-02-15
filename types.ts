@@ -3,6 +3,7 @@ export enum View {
   Runner = 'RUNNER',
   Context = 'CONTEXT',
   FunctionManager = 'FUNCTION_MANAGER',
+  History = 'HISTORY',
   Settings = 'SETTINGS',
 }
 
@@ -67,6 +68,19 @@ export interface ISession {
   timestamp: number | null;
   isStreaming?: boolean;
   showReasoning?: boolean;
+}
+
+export interface IArchive {
+  id: string;
+  title: string;
+  functionId: string;
+  model: string;
+  contextIds: string[];
+  contextNames?: string[]; // Optional: store readable names
+  userInput: string;
+  assistantResponse: string;
+  reasoningBlock?: string;
+  timestamp: number;
 }
 
 export type VerificationStatus = {

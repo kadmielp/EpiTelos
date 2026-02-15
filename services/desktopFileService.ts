@@ -1,5 +1,5 @@
 
-import { IAIFunction, IContextSource, ISettings, ISession } from '../types';
+import { IAIFunction, IContextSource, ISettings, ISession, IArchive } from '../types';
 
 /**
  * NOTE: This service provides REAL local file system interactions using the Tauri API.
@@ -47,6 +47,13 @@ const getAppDir = async () => {
 const getProfilePath = async () => tauri.path.join(await getAppDir(), 'profile.json');
 const getSessionPath = async () => tauri.path.join(await getAppDir(), 'session.json');
 const getCustomFuncsPath = async () => tauri.path.join(await getAppDir(), 'functions_custom');
+const getArchivesDir = async () => {
+    const archivesDirPath = await tauri.path.join(await getAppDir(), 'archives');
+    if (!(await tauri.fs.exists(archivesDirPath))) {
+        await tauri.fs.createDir(archivesDirPath, { recursive: true });
+    }
+    return archivesDirPath;
+};
 
 // --- AI Function Management ---
 
@@ -418,6 +425,44 @@ export const clearSession = async (): Promise<void> => {
         await tauri.fs.removeFile(path);
     }
 }
+
+// --- Intelligence Archives ---
+
+export const saveArchive = async (archive: IArchive): Promise<void> => {
+    const archivesDir = await getArchivesDir();
+    const filePath = await tauri.path.join(archivesDir, `${archive.id}.json`);
+    await tauri.fs.writeTextFile(filePath, JSON.stringify(archive, null, 2));
+};
+
+export const getArchives = async (): Promise<IArchive[]> => {
+    const archivesDir = await getArchivesDir();
+    if (!(await tauri.fs.exists(archivesDir))) return [];
+
+    const entries = await tauri.fs.readDir(archivesDir);
+    const archives: IArchive[] = [];
+
+    for (const entry of entries) {
+        if (entry.path.endsWith('.json')) {
+            try {
+                const content = await tauri.fs.readTextFile(entry.path);
+                archives.push(JSON.parse(content));
+            } catch (e) {
+                console.error(`Failed to load archive from ${entry.path}:`, e);
+            }
+        }
+    }
+
+    // Sort by timestamp descending
+    return archives.sort((a, b) => b.timestamp - a.timestamp);
+};
+
+export const deleteArchive = async (id: string): Promise<void> => {
+    const archivesDir = await getArchivesDir();
+    const filePath = await tauri.path.join(archivesDir, `${id}.json`);
+    if (await tauri.fs.exists(filePath)) {
+        await tauri.fs.removeFile(filePath);
+    }
+};
 
 // A little hack to get web-based file service for built-in functions
 import * as webFileService from './fileService';

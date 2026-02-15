@@ -1,7 +1,7 @@
 
 [package]
 name = "epitelos"
-version = "1.5.9"
+version = "1.6.1"
 
 description = "EpiTelos - Personal Development AI"
 authors = ["you"]

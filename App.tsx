@@ -5,28 +5,33 @@ import { Sidebar } from './components/Sidebar';
 import { FunctionRunner } from './components/FunctionRunner';
 import { ContextManager } from './components/ContextManager';
 import { FunctionManager } from './components/FunctionManager';
+import { ArchiveManager } from './components/ArchiveManager';
 import { Settings } from './components/Settings';
 import { Modal } from './components/Modal';
+
+// Types & Constants
 import {
   View,
   IContextSource,
-  ISession
+  ISession,
+  IArchive
 } from './types';
 import { DEFAULT_SETTINGS } from './constants';
+
+// Services
 import * as webFileService from './services/fileService';
 import * as desktopFileService from './services/desktopFileService';
+import { playNotificationSound, sendSystemNotification } from './services/notificationService';
+import { isDesktop } from './services/platform';
 
 // Hooks
 import { useAppProfile } from './hooks/useAppProfile';
 import { useContextManager } from './hooks/useContextManager';
 import { useAIProvider } from './hooks/useAIProvider';
 import { useFunctions } from './hooks/useFunctions';
+import { useArchives } from './hooks/useArchives';
 
-// @ts-ignore
-const isDesktop = !!window.__TAURI__;
 const fileService = isDesktop ? desktopFileService : webFileService;
-
-import { playNotificationSound, sendSystemNotification } from './services/notificationService';
 
 const App: React.FC = () => {
   // View State
@@ -42,6 +47,7 @@ const App: React.FC = () => {
     profile.saveProfile
   );
   const ai = useAIProvider(profile.settings);
+  const history = useArchives();
 
   // Runner-specific state
   const [selectedFunctionId, setSelectedFunctionId] = useState<string | null>(null);
@@ -98,7 +104,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       ai.setIsLoading(true);
-      const [loadedFuncs, loadedProfile, loadedSession] = await Promise.all([
+      const [_, loadedProfile, loadedSession] = await Promise.all([
         functions.loadFunctions(),
         fileService.loadProfile(),
         fileService.loadSession(),
@@ -150,11 +156,37 @@ const App: React.FC = () => {
       selectedContextIds,
       isStreaming,
       showReasoning,
-      onSuccess: () => {
+      onSuccess: (fullContent: string) => {
+        // 1. Play notifications
         if (profile.settings.notificationEnabled) {
           playNotificationSound();
           sendSystemNotification("EpiTelos Intelligence", "AI process complete. Response is ready.");
         }
+
+        // 2. Extract reasoning block if present
+        const reasoningMatch = fullContent.match(/<think>([\s\S]*?)<\/think>/);
+        const assistantResponse = fullContent.replace(/<think>[\s\S]*?<\/think>/, '').trim();
+
+        // 3. Collect context names in the EXACT order of selectedContextIds
+        const contextNames = selectedContextIds.map(id => {
+          const c = context.displayContexts.find(ctx => ctx.id === id);
+          return c ? c.remark : "Unknown Source";
+        });
+
+        // 4. Save to Archives
+        const newArchive: IArchive = {
+          id: `arch-${Date.now()}`,
+          title: userInput.slice(0, 50).trim() || func.name,
+          functionId: func.id,
+          model: profile.settings.preferredModel,
+          contextIds: [...selectedContextIds],
+          contextNames,
+          userInput,
+          assistantResponse,
+          reasoningBlock: reasoningMatch ? reasoningMatch[1].trim() : undefined,
+          timestamp: Date.now(),
+        };
+        history.addArchive(newArchive);
       }
     });
   };
@@ -174,6 +206,44 @@ const App: React.FC = () => {
       setInspectModalContent("Could not load content for this source.");
     }
   }, [context.displayContexts]);
+
+  // Inspect context from archive: tries current contexts first, then reads file directly by path
+  const handleInspectArchivedContext = useCallback(async (contextId: string) => {
+    // First try: find in currently loaded contexts
+    const source = context.displayContexts.find(c => c.id === contextId);
+    if (source && !source.isFolderMarker) {
+      return handleViewContext(contextId);
+    }
+
+    // Fallback: reconstruct path from the encoded ID
+    // ID format: ctx-<path with non-alphanumeric replaced by ->[-timestamp]
+    let encoded = contextId.replace(/^ctx-/, '');
+    encoded = encoded.replace(/-(\d{13})$/, ''); // remove timestamp if present
+
+    // We can't perfectly reconstruct the path, but we can try to read it
+    // The context source might still exist on disk
+    const displayName = encoded.split('--').pop()?.replace(/-/g, ' ').trim() || contextId;
+    setInspectModalTitle(`Inspecting: ${displayName}`);
+    setInspectModalContent("Loading content...");
+    setIsInspectModalOpen(true);
+
+    try {
+      // Try to find the source by matching the path in the ID
+      const matchingSource = context.displayContexts.find(c => {
+        const encodedPath = c.path.replace(/[^a-zA-Z0-9]/g, '-');
+        return encoded === encodedPath || contextId.includes(encodedPath);
+      });
+
+      if (matchingSource) {
+        const content = await fileService.getRawContextForInspection(matchingSource);
+        setInspectModalContent(content);
+      } else {
+        setInspectModalContent("This file is no longer available in your current context sources.\n\nTo inspect it, re-add it via the Context page.");
+      }
+    } catch {
+      setInspectModalContent("Could not load content for this source.");
+    }
+  }, [context.displayContexts, handleViewContext]);
 
   const renderView = () => {
     switch (currentView) {
@@ -222,6 +292,22 @@ const App: React.FC = () => {
             handleViewContext={handleViewContext}
             toggleContextVisibility={context.toggleContextVisibility}
             handleRefreshAllFolders={context.handleRefreshAllFolders}
+          />
+        );
+      case View.History:
+        return (
+          <ArchiveManager
+            archives={history.archives}
+            onDelete={history.removeArchive}
+            onRestore={(arch) => {
+              setSelectedFunctionId(arch.functionId);
+              setSelectedContextIds([...arch.contextIds]);
+              setUserInput(arch.userInput);
+              ai.setAiResponse(arch.assistantResponse);
+              setCurrentView(View.Runner);
+            }}
+            onInspectContext={handleInspectArchivedContext}
+            functions={functions.functions}
           />
         );
       case View.Settings:
@@ -273,7 +359,7 @@ const App: React.FC = () => {
         onClose={() => setIsInspectModalOpen(false)}
         title={inspectModalTitle}
       >
-        <pre className="whitespace-pre-wrap bg-slate-900 p-4 rounded text-slate-300 text-sm max-h-[60vh] overflow-y-auto">
+        <pre className="whitespace-pre-wrap bg-slate-900 p-4 rounded text-slate-300 text-sm max-h-[60vh] overflow-y-auto custom-scrollbar">
           {inspectModalContent}
         </pre>
       </Modal>

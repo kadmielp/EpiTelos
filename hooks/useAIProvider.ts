@@ -89,7 +89,7 @@ export const useAIProvider = (settings: ISettings) => {
         selectedContextIds: string[];
         isStreaming: boolean;
         showReasoning: boolean;
-        onSuccess?: () => void;
+        onSuccess?: (fullContent: string) => void;
     }) => {
         const { func, userInput, displayContexts, selectedContextIds, isStreaming, showReasoning, onSuccess } = params;
 
@@ -198,12 +198,14 @@ export const useAIProvider = (settings: ISettings) => {
                     if (streamHadContent && !hasExitedThinking) {
                         setAiResponse(fullResponse);
                     }
+                    onSuccess?.(fullResponse);
                 } else {
                     for await (const chunk of stream) {
                         if (controller.signal.aborted) break;
                         fullResponse += chunk;
                         setAiResponse(fullResponse);
                     }
+                    onSuccess?.(fullResponse);
                 }
             } else {
                 const fetchParams = {
@@ -253,9 +255,9 @@ export const useAIProvider = (settings: ISettings) => {
                         response = response.replace(/<think>[\s\S]*?<\/think>/, '').trim();
                     }
                     setAiResponse(response);
+                    onSuccess?.(response);
                 }
             }
-            onSuccess?.();
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
                 setAiResponse(prev => prev

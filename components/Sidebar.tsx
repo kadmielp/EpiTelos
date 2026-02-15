@@ -6,6 +6,7 @@ import { FolderIcon } from './icons/FolderIcon';
 import { CogIcon } from './icons/CogIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { MLIcon } from './icons/MLIcon';
+import { ClockIcon } from './icons/ClockIcon';
 
 interface SidebarProps {
   currentView: View;
@@ -125,6 +126,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, i
               isCollapsed={isCollapsed}
               isActive={currentView === View.Context}
               onClick={() => setCurrentView(View.Context)}
+            />
+            <NavItem
+              icon={<ClockIcon />}
+              label="Archives"
+              isCollapsed={isCollapsed}
+              isActive={currentView === View.History}
+              onClick={() => setCurrentView(View.History)}
             />
             <NavItem
               icon={<CogIcon />}
