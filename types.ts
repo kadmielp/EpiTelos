@@ -56,6 +56,7 @@ export interface ISettings {
   defaultFunctionId: string | null;
   defaultContextIds: string[];
   notificationEnabled?: boolean;
+  sidebarCollapsed?: boolean;
 }
 
 export interface ISession {

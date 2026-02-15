@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS: ISettings = {
   defaultFunctionId: null,
   defaultContextIds: [],
   notificationEnabled: true,
+  sidebarCollapsed: false,
 };
 
 export const EMPTY_SESSION: ISession = {

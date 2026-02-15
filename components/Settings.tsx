@@ -37,16 +37,14 @@ export const Settings: React.FC<SettingsProps> = ({
     };
 
     return (
-        <div className="h-full flex flex-col bg-slate-950 overflow-hidden">
+        <div className="h-full flex flex-col overflow-hidden">
             {/* Header */}
             <header className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-slate-900/40 backdrop-blur-3xl shrink-0">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-blue-600/10 border border-blue-500/20 rounded-2xl">
-                        <CogIcon className="w-6 h-6 text-blue-400" />
-                    </div>
+                <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                     <div>
-                        <h2 className="text-xl font-black uppercase tracking-tighter text-white italic">System Settings</h2>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-0.5">Global configuration & security</p>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Global Configuration</h2>
+                        <h1 className="text-xl font-bold text-white tracking-tight">System Settings</h1>
                     </div>
                 </div>
 
@@ -79,33 +77,11 @@ export const Settings: React.FC<SettingsProps> = ({
                 <ModelSourceConfig
                     settings={settings}
                     updateSettings={updateSettings}
+                    availableModels={availableModels}
                     verificationStatus={verificationStatus}
                     verifyAndLoadModels={verifyAndLoadModels}
                 />
 
-                {/* Global Model Preference */}
-                <section className="space-y-6">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-1.5 h-6 bg-purple-600 rounded-full" />
-                        <h3 className="text-sm font-black uppercase tracking-widest text-white">Preferred Model</h3>
-                    </div>
-
-                    <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Active Model for {settings.modelSource}</label>
-                            <select
-                                value={settings.preferredModel}
-                                onChange={(e) => updateSettings({ preferredModel: e.target.value })}
-                                className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all appearance-none cursor-pointer"
-                            >
-                                <option value="">Select a model...</option>
-                                {availableModels.map(model => (
-                                    <option key={model} value={model}>{model}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                </section>
 
                 {/* Interface Preferences */}
                 <section className="space-y-6">

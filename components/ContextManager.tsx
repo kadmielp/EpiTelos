@@ -98,15 +98,10 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-200 selection:bg-blue-500/30 overflow-hidden relative">
-      {/* Premium Gradient Backgrounds Overlay */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
-      </div>
+    <div className="h-full flex flex-col text-slate-200 overflow-hidden relative">
 
       {/* Header Area */}
-      <div className="z-10 px-8 py-6 border-b border-white/5 flex items-center justify-between bg-slate-900/40 backdrop-blur-md">
+      <div className="z-10 px-8 py-6 border-b border-white/5 flex items-center justify-between bg-slate-900/40 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
           <div>
@@ -350,20 +345,6 @@ export const ContextManager: React.FC<ContextManagerProps> = ({ isDesktop, conte
         )}
       </Modal>
 
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 20px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.3); }
-
-        @keyframes slide-in-from-top-1 { from { transform: translateY(-4px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes slide-in-from-top-2 { from { transform: translateY(-12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        .animate-in { animation: 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
-        .fade-in { animation-name: fade-in; }
-        .slide-in-from-top-1 { animation-name: slide-in-from-top-1; }
-        .slide-in-from-top-2 { animation-name: slide-in-from-top-2; }
-      `}</style>
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { Modal } from './Modal';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { ControlHub } from './runner/ControlHub';
 import { ResponseTerminal } from './runner/ResponseTerminal';
+import { MLIcon } from './icons/MLIcon';
 
 interface FunctionRunnerProps {
   functions: IAIFunction[];
@@ -98,12 +99,7 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
   const selectedFunction = functions.find(f => f.id === selectedFunctionId);
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-200 selection:bg-blue-500/30">
-      {/* Background Overlays */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
-      </div>
+    <div className="h-full flex flex-col text-slate-200">
 
       <div className="flex flex-grow min-h-0 z-10 p-3 pt-4 gap-3">
         {/* Control Hub Aside */}
@@ -156,7 +152,6 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
           />
         </main>
       </div>
-
 
       {/* System Prompt Modal */}
       {selectedFunction && (

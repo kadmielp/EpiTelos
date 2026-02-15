@@ -14,6 +14,10 @@ and this project adheres to Semantic Versioning.
 - **Reasoning Block UI**: Dedicated `ThinkingBlock` component for collapsible AI chain-of-thought displays with smooth grid animations.
 - **Visualization Core**: Isolated `MermaidDiagram` component with enhanced dark-theme styling.
 - **Platform Intelligence**: Orchestrated a centralized platform service to unify Desktop (Tauri) vs Web logic.
+- **Adaptive Sidebar**: Implemented a minimalist "Icons-only" collapsed mode with persistent user state.
+- **Unified Background System**: Orchestrated a global atmospheric background (gradients + blur blobs) for a seamless view transitions.
+- **Standardized Headers**: Unified the layout of Manager views (Context, Functions, Settings) with status indicators.
+- **Streamlined Settings**: Redesigned Provider configuration with a side-by-side grouped layout for Keys and Model selection.
 - **Maritaca & Custom Providers**: Added dedicated configuration fields for Maritaca (fixed cloud URL) and Custom providers (Base URL + API Key).
 
 ### Fixed
@@ -21,9 +25,9 @@ and this project adheres to Semantic Versioning.
 - **Tauri Development Readiness**: Configured local environment pathing to support native Rust compilation within the Tauri dev loop.
 
 ### Changed
-- **Performance Optimization**: Refined Tailwind CSS content scanning to exclude `node_modules`, significantly improving HMR and build speeds.
-- **UI Component Model**: Switched from monolithic view controllers to a clean, declarative component architecture.
 - **Visual Polish**: Unified scrollbar styling across all platforms and optimized global animation durations.
+- **UI Architecture**: Migrated from monolithic local styles to global utility-based CSS in `index.css`.
+- **Performance Optimization**: Refined Tailwind CSS content scanning to exclude `node_modules`, significantly improving HMR and build speeds.
 24: 
 
 ### Fixed

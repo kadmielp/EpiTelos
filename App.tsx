@@ -245,13 +245,24 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-slate-900 text-slate-200 selection:bg-blue-500/20">
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+    <div className="flex h-screen w-screen bg-slate-900 via-slate-900 to-slate-950 text-slate-200 selection:bg-blue-500/20 overflow-hidden">
+      <Sidebar
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        isCollapsed={profile.settings.sidebarCollapsed || false}
+        onToggle={() => profile.updateSettings({ sidebarCollapsed: !profile.settings.sidebarCollapsed })}
+      />
 
-      <main className="flex-1 overflow-hidden relative">
+      <main className="flex-1 overflow-hidden relative bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
+        {/* Global Background Overlays */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+          <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
+        </div>
+
         <div
           key={currentView}
-          className="h-full w-full animate-slide-up"
+          className="h-full w-full animate-slide-up relative z-10"
         >
           {renderView()}
         </div>
