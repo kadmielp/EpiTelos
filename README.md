@@ -99,8 +99,12 @@ The build process will automatically index these into the application manifest.
 
 ---
 
-## ⚠️ Disclaimer
-EpiTelos is a prototype provided "as is". The author is not responsible for any consequences arising from usage. Always verify AI outputs for accuracy, especially regarding personal or professional decisions.
+## Responsible Use & Disclaimer
+EpiTelos is a prototype provided "as is" for personal reflection, exploration, and experimentation. The author is not responsible or liable for any decisions, actions, outcomes, damages, losses, or consequences that result from using this software or relying on its outputs.
+
+AI-generated content can be incomplete, inaccurate, biased, misleading, or inappropriate for your situation. Always review, verify, and critically evaluate every AI output before using it, especially when it may affect your health, relationships, finances, legal obligations, career, safety, or other important life decisions.
+
+EpiTelos is not a substitute for professional advice, diagnosis, treatment, counseling, legal guidance, financial advice, or any other qualified professional service. If you need help with a serious, sensitive, or high-stakes matter, seek support from an appropriate qualified professional.
 
 ---
 
