@@ -12,6 +12,8 @@ function Get-Sha256([string]$path) {
     } finally { $stream.Dispose() }
 }
 New-Item -ItemType Directory -Force -Path $root, $cache | Out-Null
+Get-Process -Name 'llama-server' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep -Milliseconds 500
 foreach ($backend in @('cpu', 'cuda', 'vulkan')) {
     $destination = [System.IO.Path]::GetFullPath((Join-Path $root $backend))
     if (!$destination.StartsWith($root + [System.IO.Path]::DirectorySeparatorChar)) { throw 'Unsafe runtime destination' }
