@@ -14,11 +14,15 @@ import { translate, normalizeLanguage } from '../i18n';
 const isDesktop = !!window.__TAURI__;
 const fileService = isDesktop ? desktopFileService : webFileService;
 
+const requestsOutputLanguage = (input: string): boolean =>
+    /(?:answer|respond|reply|write|output|translate|response|responda|responder|escreva|escrever|traduza|traduzir|resposta|saída)[^.!?\n]{0,80}(?:in|into|to|em|para)\s+(?:brazilian\s+)?(?:portuguese|english|spanish|french|german|italian|japanese|chinese|arabic|portugu[eê]s|ingl[eê]s|espanhol|franc[eê]s|alem[aã]o|italiano|japon[eê]s|chin[eê]s|[aá]rabe)/i.test(input);
+
 export const useAIProvider = (settings: ISettings) => {
     const t = (key: string) => translate(normalizeLanguage(settings.language), key);
     const [availableModels, setAvailableModels] = useState<string[]>([]);
     const [modelVerificationStatus, setModelVerificationStatus] = useState<VerificationStatus | null>(null);
     const [aiResponse, setAiResponse] = useState('');
+    const [runError, setRunError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const abortControllerRef = useRef<AbortController | null>(null);
     const verificationIdRef = useRef(0);
@@ -52,7 +56,7 @@ export const useAIProvider = (settings: ISettings) => {
                     }
                     models = settingsToVerify.localGgufModels || [];
                     if (settingsToVerify.preferredModel) {
-                        const status = await localGgufService.startModel(settingsToVerify.preferredModel, settingsToVerify.localGgufBackend || 'auto');
+                        const status = await localGgufService.startModel(settingsToVerify.preferredModel, settingsToVerify.localGgufBackend || 'auto', settingsToVerify.localGgufContextSize || 8192);
                         result = { success: true, message: `${t('Ready on ')}${status.backend.toUpperCase()}` };
                     } else {
                         result = { success: true, message: models.length ? 'Select a model to load it.' : 'Add a GGUF model file.' };
@@ -121,6 +125,7 @@ export const useAIProvider = (settings: ISettings) => {
         abortControllerRef.current = controller;
 
         setIsLoading(true);
+        setRunError(false);
         setAiResponse('');
 
         // Build context + prompt
@@ -135,11 +140,11 @@ export const useAIProvider = (settings: ISettings) => {
             return !isContained;
         });
         const contextContent = await fileService.readContextSources(sourcesToRead);
-        const fullUserPrompt = `${contextContent}\n\n--- USER INPUT ---\n${userInput}`;
-        const languageInstruction = settings.language === 'pt-BR'
-            ? 'Reply in Brazilian Portuguese by default. If the function instructions or the user explicitly require another language, follow that requirement. Preserve code, quotations, identifiers, and source content as needed.'
-            : 'Reply in English by default. If the function instructions or the user explicitly require another language, follow that requirement. Preserve code, quotations, identifiers, and source content as needed.';
-        const requestSystemPrompt = `${func.systemPrompt}\n\n--- RESPONSE LANGUAGE ---\n${languageInstruction}`;
+        const responseLanguage = settings.language === 'pt-BR' ? 'Brazilian Portuguese (pt-BR)' : 'English';
+        const userChoseLanguage = requestsOutputLanguage(userInput);
+        const languageInstruction = `Write the final response in ${responseLanguage}, including headings, labels, and explanations. The language of the function instructions, examples, and source material does not set the response language. Preserve code, names, and quoted text.`;
+        const requestSystemPrompt = userChoseLanguage ? func.systemPrompt : `${func.systemPrompt}\n\n--- RESPONSE LANGUAGE ---\n${languageInstruction}`;
+        const fullUserPrompt = `${contextContent}\n\n--- USER INPUT ---\n${userInput}${userChoseLanguage ? '' : `\n\n--- RESPONSE LANGUAGE ---\nAnswer in ${responseLanguage}.`}`;
 
         try {
             if (isStreaming) {
@@ -295,11 +300,16 @@ export const useAIProvider = (settings: ISettings) => {
                     : t("Generation stopped.")
                 );
             } else {
-                setAiResponse(
-                    error instanceof Error
-                        ? t(error.message)
-                        : t("An unknown error occurred during AI execution.")
-                );
+                setRunError(true);
+                const message = error instanceof Error ? error.message : t("An unknown error occurred during AI execution.");
+                const contextError = settings.modelSource === 'Local GGUF'
+                    ? message.match(/request \((\d+) tokens\) exceeds the available context size \((\d+) tokens\)/i)
+                    : null;
+                setAiResponse(contextError
+                    ? settings.language === 'pt-BR'
+                        ? `O conteúdo selecionado usa ${contextError[1]} tokens, mas a janela de contexto está em ${contextError[2]}. Em Configurações > Local > GGUF, aumente a janela de contexto ou desmarque algumas fontes e tente novamente.`
+                        : `The selected content uses ${contextError[1]} tokens, but the context window is ${contextError[2]}. In Settings > Local > GGUF, increase the context window or deselect some sources and try again.`
+                    : t(message));
             }
         } finally {
             setIsLoading(false);
@@ -311,6 +321,7 @@ export const useAIProvider = (settings: ISettings) => {
         availableModels,
         modelVerificationStatus,
         aiResponse,
+        runError,
         setAiResponse,
         isLoading,
         setIsLoading,

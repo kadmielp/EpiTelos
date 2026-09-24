@@ -10,7 +10,7 @@ const apiKey = typeof process !== 'undefined' && process.env?.API_KEY
 export const DEFAULT_SETTINGS: ISettings = {
   language: 'en',
   apiKey: apiKey || '', // Deprecated, keeping for backward compatibility
-  modelSource: 'Ollama',
+  modelSource: 'Ollama', // Selects Local by default; Ollama is its initial local source.
   preferredModel: '', // Set to empty to allow auto-selection of first available Ollama model
   geminiModel: '',
   ollamaModel: '',
@@ -20,6 +20,7 @@ export const DEFAULT_SETTINGS: ISettings = {
   localGgufModel: '',
   localGgufModels: [],
   localGgufBackend: 'auto',
+  localGgufContextSize: 8192,
   ollamaApiUrl: 'http://localhost:11434',
   openaiApiKey: '',
   geminiApiKey: '',

@@ -7,6 +7,18 @@ and this project adheres to Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-09-25
+
+### Changed
+- Grouped Ollama and GGUF under the default **Local** provider, simplified Settings, and made active controls easier to identify.
+- Display GGUF file names instead of full paths in model selectors and archives.
+
+### Fixed
+- Resolved missing CPU, CUDA, and Vulkan runtime errors when launching a locally built Windows executable directly.
+- Added selectable GGUF context windows (4,096, 8,192, and 16,384 tokens) and clearer context overflow errors.
+- Applied the selected response language more reliably while honoring explicit language requests in the user's prompt.
+- Wrapped long text inside Markdown code blocks and showed generation failures as errors rather than completed responses.
+
 ## [1.7.0] - 2026-09-24
 
 ### Added

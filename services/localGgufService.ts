@@ -17,7 +17,7 @@ const call = async <T>(command: string, args?: Record<string, unknown>): Promise
 };
 
 export const validateModel = (path: string): Promise<string> => call('validate_model', { path });
-export const startModel = (path: string, backend: LocalBackend): Promise<LocalStatus> => call('start_model', { path, backend });
+export const startModel = (path: string, backend: LocalBackend, contextSize: number): Promise<LocalStatus> => call('start_model', { path, backend, contextSize });
 export const stopModel = (): Promise<void> => call('stop_model');
 
 type RunOptions = { systemPrompt: string; userPrompt: string; signal?: AbortSignal };

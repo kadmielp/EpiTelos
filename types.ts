@@ -51,6 +51,7 @@ export interface ISettings {
   localGgufModel?: string;
   localGgufModels?: string[];
   localGgufBackend?: 'auto' | 'cpu' | 'cuda' | 'vulkan';
+  localGgufContextSize?: 4096 | 8192 | 16384;
   ollamaApiUrl?: string;
   openaiApiKey?: string;
   geminiApiKey?: string;

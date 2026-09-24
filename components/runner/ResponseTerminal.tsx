@@ -11,6 +11,7 @@ import { MermaidDiagramSizeWrapper } from '../MermaidDiagram';
 
 interface ResponseTerminalProps {
     aiResponse: string;
+    runError?: boolean;
     isLoading: boolean;
     isStreaming: boolean;
     onCopy: () => void;
@@ -20,6 +21,7 @@ interface ResponseTerminalProps {
 
 export const ResponseTerminal: React.FC<ResponseTerminalProps> = ({
     aiResponse,
+    runError = false,
     isLoading,
     isStreaming,
     onCopy,
@@ -72,10 +74,10 @@ export const ResponseTerminal: React.FC<ResponseTerminalProps> = ({
         <>
             <div className="flex items-center justify-between px-6 py-4 bg-white/[0.02] border-b border-white/5">
                 <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-neutral-500 animate-pulse' : aiResponse ? 'bg-neutral-500' : 'bg-neutral-700'}`} />
+                    <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-neutral-500 animate-pulse' : runError ? 'bg-red-400' : aiResponse ? 'bg-neutral-500' : 'bg-neutral-700'}`} />
                     <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-neutral-300">{t('RESPONSE')}</h3>
                     <span className="text-[10px] font-semibold text-neutral-400" aria-live="polite">
-                        {t(isLoading ? 'Running' : aiResponse ? 'Complete' : 'Ready')}
+                        {t(isLoading ? 'Running' : runError ? 'Error' : aiResponse ? 'Complete' : 'Ready')}
                     </span>
                 </div>
                 <div className="flex gap-2">
@@ -126,7 +128,7 @@ export const ResponseTerminal: React.FC<ResponseTerminalProps> = ({
                         )}
 
                         {parsedResponse.mainContent && (
-                            <div className="prose prose-invert prose-slate prose-sm max-w-none 
+                            <div className="response-markdown prose prose-invert prose-slate prose-sm max-w-none
                 prose-headings:font-black prose-headings:tracking-tight prose-headings:text-white
                 prose-p:text-neutral-200 prose-p:leading-relaxed
                 prose-strong:text-neutral-200 prose-strong:font-bold

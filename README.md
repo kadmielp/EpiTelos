@@ -73,20 +73,22 @@ The **Context Manager** is where you curate the data sources the AI is allowed t
 ### 4. System Settings (Global Config)
 Configure your AI providers and application behavior.
 
-- **Provider Management**: Full support for **Ollama** (Local), **Maritaca AI**, **OpenAI**, **Gemini**, and **Custom OpenAI-compatible** endpoints.
+- **Provider Management**: **Local** is the default provider group. Choose **Ollama** or **GGUF** within it; Gemini, OpenAI, Maritaca AI, and custom OpenAI-compatible endpoints remain available.
+- **Intelligence Memory**: The app remembers which model you prefer for each provider and restores it when you switch back.
+- **Language**: Choose English or Brazilian Portuguese for the interface and generated responses. An explicit request such as "Answer in English" in **Your prompt** can override the default.
+- **Interface Preferences**: Enable or disable completion sounds and system notifications.
+- **Profile Portability**: Export your setup to a JSON file and import it on another machine.
+- **API Key Storage**: Desktop API keys use the operating system's credential store.
 
 ### Local GGUF models (Windows desktop)
 
-In Settings, choose **Local GGUF**, add one or more downloaded `.gguf` files, then select a model. EpiTelos starts a bundled llama.cpp server locally and loads one model at a time. No API key or model download is required. The browser build cannot run local GGUF models.
+In Settings, choose **Local > GGUF**, add one or more downloaded `.gguf` files, select a model, and click **Load Model**. EpiTelos starts a bundled llama.cpp server locally and loads one model at a time. Model selectors show the file name while keeping its full path internally. No API key is required; supply your own model file. The browser build cannot run local GGUF models.
 
-The Windows desktop bundle includes llama.cpp `b11163` CPU, CUDA 12.4, and Vulkan x64 runtimes. Automatic mode tries CUDA when an NVIDIA GPU is detected, Vulkan for another detected GPU, and CPU otherwise. A GPU requires a compatible driver and enough memory; if loading fails, choose **CPU** in Settings and select **Load Model**. Some GGUF models may need chat templates or more memory than the machine provides. Loading status and failures appear in Settings; detailed startup logs are written to the app log directory as `local-gguf.log`.
+The default context window is 8,192 tokens; Settings also offers 4,096 and 16,384. If selected sources and instructions exceed the window, deselect some sources or increase **Context window (tokens)**. A larger window uses more memory and reloads the model.
+
+The Windows desktop bundle includes llama.cpp `b11163` CPU, CUDA 12.4, and Vulkan x64 runtimes. Automatic mode tries CUDA when an NVIDIA GPU is detected, Vulkan for another detected GPU, and CPU otherwise. A GPU requires a compatible driver and enough memory; if loading fails, choose **CPU** in Settings and select **Load Model**. Some GGUF models may need chat templates or more memory than the machine provides. Loading status and failures appear in Settings; detailed startup logs are written to the app log directory as `local-gguf.log`. When running a locally built executable directly, keep the prepared runtimes in `src-tauri/resources/local_gguf/`.
 
 The runtimes are downloaded with SHA-256 verification during Windows desktop packaging via `scripts/prepare-llama-runtimes.ps1`. llama.cpp is MIT licensed; its license is bundled in `src-tauri/resources/LLAMA_CPP_LICENSE.txt`. CUDA redistributable libraries come from the pinned llama.cpp release and remain subject to NVIDIA's applicable redistribution terms. Users supply their own model files and are responsible for their model licenses.
-- **Intelligence Memory**: The app remembers which model you prefer for *each* provider, automatically switching back to your favorite when you change sources.
-- **Interface Preferences**:
-    - **Completion Notifications**: Opt-in to a premium "Double-Chime" sound and native OS system popups when the AI finishing generating, allowing you to multitask while it works.
-- **Profile Portability**: Export your entire setup to a single JSON file. The app handles retrieving secrets from secure storage to ensure your backup is complete and ready for use on a new machine.
-- **Hardware-Backed Security**: Desktop users benefit from OS-level encryption (Windows Credential Manager / macOS Keychain), ensuring API keys are never stored in plain text.
 
 ---
 
@@ -94,7 +96,7 @@ The runtimes are downloaded with SHA-256 verification during Windows desktop pac
 
 ### Adding Built-in Functions
 EpiTelos features an automatic discovery script. To add a permanent function:
-1. Create a folder in `public/functions/`.
+1. Create a folder in `functions/`.
 2. Add a `system.md` (the prompt).
 3. Add a `metadata.json` (name, desc, category).
 The build process will automatically index these into the application manifest.

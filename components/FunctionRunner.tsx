@@ -17,6 +17,7 @@ interface FunctionRunnerProps {
   userInput: string;
   setUserInput: (input: string) => void;
   aiResponse: string;
+  runError: boolean;
   isLoading: boolean;
   onRun: () => void;
   onStop: () => void;
@@ -42,6 +43,7 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
   userInput,
   setUserInput,
   aiResponse,
+  runError,
   isLoading,
   onRun,
   onStop,
@@ -151,6 +153,7 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
         <main className="runner-output flex flex-col flex-grow min-w-0 overflow-hidden relative">
           <ResponseTerminal
             aiResponse={aiResponse}
+            runError={runError}
             isLoading={isLoading}
             isStreaming={isStreaming}
             onCopy={handleCopyResponse}

@@ -1,4 +1,5 @@
 import { useLanguage } from '../i18n';
+import { modelDisplayName } from '../services/modelDisplayName';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { IArchive, IAIFunction } from '../types';
 import { ClockIcon } from './icons/ClockIcon';
@@ -293,7 +294,7 @@ export const ArchiveManager: React.FC<ArchiveManagerProps> = ({ archives, onDele
                                     <div className="flex items-center gap-4">
                                         <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{getFunctionName(selectedArchive.functionId)}</span>
                                         <div className="w-1 h-1 rounded-full bg-neutral-700" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{selectedArchive.model}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{modelDisplayName(selectedArchive.model)}</span>
                                     </div>
                                 </div>
 
@@ -375,7 +376,7 @@ export const ArchiveManager: React.FC<ArchiveManagerProps> = ({ archives, onDele
                                                     if (!selectedArchive) return;
                                                     const timestamp = new Date(selectedArchive.timestamp).toISOString().replace(/[:.]/g, '-');
                                                     const filename = `${selectedArchive.title.replace(/[^a-zA-Z0-9 ]/g, '')}_${timestamp}.md`;
-                                                    const content = `# ${selectedArchive.title}\n\n**${t('Function')}:** ${getFunctionName(selectedArchive.functionId)}  \n**${t('Model')}:** ${selectedArchive.model}  \n**${t('Date')}:** ${new Date(selectedArchive.timestamp).toLocaleString(language)}\n\n---\n\n## ${t('User Prompt')}\n\n${selectedArchive.userInput}\n\n---\n\n## ${t('Response')}\n\n${selectedArchive.assistantResponse}`;
+                                                    const content = `# ${selectedArchive.title}\n\n**${t('Function')}:** ${getFunctionName(selectedArchive.functionId)}  \n**${t('Model')}:** ${modelDisplayName(selectedArchive.model)}  \n**${t('Date')}:** ${new Date(selectedArchive.timestamp).toLocaleString(language)}\n\n---\n\n## ${t('User Prompt')}\n\n${selectedArchive.userInput}\n\n---\n\n## ${t('Response')}\n\n${selectedArchive.assistantResponse}`;
                                                     // @ts-ignore
                                                     if (window.__TAURI__) {
                                                         try {

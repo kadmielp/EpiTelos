@@ -14,6 +14,7 @@ struct LocalState {
     child: Option<Child>,
     model: Option<String>,
     backend: Option<String>,
+    context_size: Option<u32>,
     ready: bool,
     port: Option<u16>,
     key: Option<String>,
@@ -60,6 +61,7 @@ fn stop_locked(state: &mut LocalState) {
     if let Some(mut child) = state.child.take() { let _ = child.kill(); let _ = child.wait(); }
     state.model = None;
     state.backend = None;
+    state.context_size = None;
     state.ready = false;
     state.port = None;
     state.key = None;
@@ -67,9 +69,29 @@ fn stop_locked(state: &mut LocalState) {
 
 fn backend_path(window: &Window, backend: &str) -> Result<PathBuf, String> {
     let dir = window.app_handle().path_resolver().resource_dir().ok_or("Cannot find bundled runtimes")?;
-    let path = dir.join("local_gguf").join(backend).join("llama-server.exe");
-    if !path.is_file() { return Err(format!("Bundled {backend} llama.cpp runtime is missing: {}", path.display())); }
-    Ok(path)
+    runtime_path(&dir, backend)
+}
+
+fn runtime_path(resource_dir: &Path, backend: &str) -> Result<PathBuf, String> {
+    let bundled = resource_dir.join("local_gguf").join(backend).join("llama-server.exe");
+    if bundled.is_file() { return Ok(bundled); }
+
+    // Running target/debug or target/release directly does not install Tauri bundle resources.
+    // In that case, use the runtimes prepared in the source tree. Installed builds still
+    // require their own bundled resources.
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let target_dir = manifest_dir.join("target");
+    let is_local_build = matches!(resource_dir.file_name().and_then(|name| name.to_str()), Some("debug" | "release"))
+        && match (resource_dir.parent().and_then(|path| path.canonicalize().ok()), target_dir.canonicalize().ok()) {
+            (Some(actual), Some(expected)) => actual == expected,
+            _ => false,
+        };
+    if is_local_build {
+        let prepared = manifest_dir.join("resources").join("local_gguf").join(backend).join("llama-server.exe");
+        if prepared.is_file() { return Ok(prepared); }
+    }
+
+    Err(format!("Bundled {backend} llama.cpp runtime is missing: {}", bundled.display()))
 }
 
 fn auto_backend(window: &Window) -> String {
@@ -88,15 +110,16 @@ fn auto_backend(window: &Window) -> String {
 }
 
 #[tauri::command]
-pub async fn start_model(window: Window, state: State<'_, LocalManager>, path: String, backend: String) -> Result<ModelStatus, String> {
+pub async fn start_model(window: Window, state: State<'_, LocalManager>, path: String, backend: String, context_size: u32) -> Result<ModelStatus, String> {
     let model = validate_path(&path)?.to_string_lossy().into_owned();
     if !["auto", "cpu", "cuda", "vulkan"].contains(&backend.as_str()) { return Err("Invalid runtime selection".into()); }
+    if ![4096, 8192, 16384].contains(&context_size) { return Err("Invalid local context window size".into()); }
     let selected = if backend == "auto" { auto_backend(&window) } else { backend };
     let executable = backend_path(&window, &selected)?;
     let key = uuid::Uuid::new_v4().to_string();
     {
         let mut current = state.0.lock().map_err(|_| "Local model state unavailable")?;
-        if current.ready && current.model.as_deref() == Some(&model) && current.backend.as_deref() == Some(&selected) {
+        if current.ready && current.model.as_deref() == Some(&model) && current.backend.as_deref() == Some(&selected) && current.context_size == Some(context_size) {
             if current.child.as_mut().and_then(|c| c.try_wait().ok()).flatten().is_none() {
                 return Ok(ModelStatus { backend: selected, model });
             }
@@ -114,7 +137,7 @@ pub async fn start_model(window: Window, state: State<'_, LocalManager>, path: S
     let mut process = Command::new(executable);
     #[cfg(windows)]
     process.creation_flags(0x08000000);
-    process.args(["--model", &model, "--host", "127.0.0.1", "--port", &port.to_string(), "--api-key", &key, "--ctx-size", "4096"]);
+    process.args(["--model", &model, "--host", "127.0.0.1", "--port", &port.to_string(), "--api-key", &key, "--ctx-size", &context_size.to_string()]);
     if selected != "cpu" { process.args(["--n-gpu-layers", "auto", "--fit", "on"]); }
     let mut child = process.current_dir(backend_path(&window, &selected)?.parent().unwrap())
         .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::from(log))
@@ -128,6 +151,7 @@ pub async fn start_model(window: Window, state: State<'_, LocalManager>, path: S
         current.child = Some(child);
         current.model = Some(model.clone());
         current.backend = Some(selected.clone());
+        current.context_size = Some(context_size);
         current.port = Some(port);
         current.key = Some(key.clone());
     }

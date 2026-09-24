@@ -148,6 +148,7 @@ const App: React.FC = () => {
     profile.settings.ollamaApiUrl,
     profile.settings.preferredModel,
     profile.settings.localGgufBackend,
+    profile.settings.localGgufContextSize,
     profile.settings.localGgufModels,
     profile.settings.openaiApiKey,
     profile.settings.customApiUrl,
@@ -271,6 +272,7 @@ const App: React.FC = () => {
             userInput={userInput}
             setUserInput={setUserInput}
             aiResponse={ai.aiResponse}
+            runError={ai.runError}
             isLoading={ai.isLoading}
             onRun={handleRunFunction}
             onStop={ai.handleStopGeneration}
@@ -325,7 +327,6 @@ const App: React.FC = () => {
       case View.Settings:
         return (
           <Settings
-            isDesktop={profile.isDesktop}
             settings={profile.settings}
             updateSettings={profile.updateSettings}
             contexts={profile.userAddedContexts}

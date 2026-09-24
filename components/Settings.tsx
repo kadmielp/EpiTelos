@@ -1,13 +1,11 @@
 import React, { useRef } from 'react';
 import { ISettings, IContextSource, IAIFunction, VerificationStatus } from '../types';
 import { ModelSourceConfig } from './settings/ModelSourceConfig';
-import { CogIcon } from './icons/CogIcon';
 import { ExportIcon } from './icons/ExportIcon';
 import { ImportIcon } from './icons/ImportIcon';
 import { useLanguage } from '../i18n';
 
 interface SettingsProps {
-    isDesktop: boolean;
     settings: ISettings;
     updateSettings: (newSettings: Partial<ISettings>) => void;
     contexts: IContextSource[];
@@ -20,7 +18,6 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({
-    isDesktop,
     settings,
     updateSettings,
     contexts,
@@ -117,14 +114,6 @@ export const Settings: React.FC<SettingsProps> = ({
                             </button>
                         </div>
 
-                        <div className="surface-card border rounded-3xl p-6 flex flex-col justify-center">
-                            <p className="text-xs font-bold text-white mb-1">{t('App environment')}</p>
-                            <div className="flex items-center gap-2 mt-2">
-                                <div className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-[0.2em] bg-neutral-500/10 text-neutral-200 border border-neutral-500/20">
-                                    {t(isDesktop ? 'Desktop app' : 'Web app')}
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </section>
             </div>

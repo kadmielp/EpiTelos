@@ -1,4 +1,5 @@
 import { useLanguage } from '../../i18n';
+import { modelDisplayName } from '../../services/modelDisplayName';
 import React, { useState, useRef, useEffect } from 'react';
 import { IAIFunction, IContextSource, TreeNode } from '../../types';
 import { ExternalLinkIcon } from '../icons/ExternalLinkIcon';
@@ -257,7 +258,7 @@ export const ControlHub: React.FC<ControlHubProps> = ({
                             <div ref={modelSelectorRef} className="relative flex items-center">
                                 <button onClick={() => setIsModelSelectorOpen(!isModelSelectorOpen)} className="text-[10px] bg-neutral-800/50 hover:bg-neutral-700/50 px-2.5 py-1.5 rounded-lg border border-white/5 transition-all flex items-center gap-2 group/btn">
                                     <span className="text-neutral-400 font-bold tracking-widest text-[9px]">{t('MODEL')}</span>
-                                    <span className="text-neutral-200 font-black truncate max-w-[100px]">{selectedModel || t('NONE')}</span>
+                                    <span className="text-neutral-200 font-black truncate max-w-[100px]">{selectedModel ? modelDisplayName(selectedModel) : t('NONE')}</span>
                                     <ChevronDownIcon className={`w-3.5 h-3.5 text-neutral-400 group-hover/btn:text-neutral-200 transition-transform duration-300 ${isModelSelectorOpen ? 'rotate-180' : ''}`} />
                                 </button>
                                 {isModelSelectorOpen && (
@@ -266,7 +267,7 @@ export const ControlHub: React.FC<ControlHubProps> = ({
                                         <div className="max-h-64 overflow-y-auto custom-scrollbar p-1.5">
                                             {availableModels.map(m => (
                                                 <button key={m} onClick={() => { onSelectModel(m); setIsModelSelectorOpen(false); }} className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all mb-0.5 last:mb-0 ${selectedModel === m ? 'bg-neutral-700 text-white shadow-lg' : 'hover:bg-white/5 text-neutral-300 hover:text-white'}`}>
-                                                    {m}
+                                                    {modelDisplayName(m)}
                                                 </button>
                                             ))}
                                         </div>
@@ -275,18 +276,18 @@ export const ControlHub: React.FC<ControlHubProps> = ({
                             </div>
                         )}
                         <div className="w-px h-4 bg-white/10" />
-                        <button onClick={() => setShowReasoning(!showReasoning)} aria-pressed={showReasoning} className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors group">
-                            <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative ${showReasoning ? 'bg-neutral-700' : 'bg-white/10'} border border-white/5`}>
-                                <div className={`absolute top-0.5 w-2.5 h-2.5 bg-white rounded-full transition-all duration-300 shadow-md ${showReasoning ? 'left-[14px]' : 'left-0.5'}`} />
+                        <button onClick={() => setShowReasoning(!showReasoning)} aria-pressed={showReasoning} className={`flex items-center gap-1.5 px-1.5 py-1 rounded-lg border transition-colors group focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${showReasoning ? 'bg-white/10 border-white/20' : 'border-transparent hover:bg-white/5'}`}>
+                            <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative border ${showReasoning ? 'bg-neutral-300 border-neutral-300' : 'bg-white/10 border-white/10'}`}>
+                                <div className={`absolute top-0.5 w-2.5 h-2.5 rounded-full transition-all duration-300 shadow-md ${showReasoning ? 'left-[14px] bg-neutral-900' : 'left-0.5 bg-white'}`} />
                             </div>
-                            <span className="text-[9px] uppercase font-bold tracking-wider text-neutral-400 group-hover:text-neutral-200 transition-colors whitespace-nowrap">{t('Show Reasoning')}</span>
+                            <span className={`text-[9px] uppercase font-bold tracking-wider transition-colors whitespace-nowrap ${showReasoning ? 'text-white' : 'text-neutral-400 group-hover:text-neutral-200'}`}>{t('Show Reasoning')}</span>
                         </button>
                         <div className="w-px h-3 bg-white/10" />
-                        <button onClick={() => setIsStreaming(!isStreaming)} aria-pressed={isStreaming} className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors group">
-                            <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative ${isStreaming ? 'bg-neutral-700' : 'bg-white/10'} border border-white/5`}>
-                                <div className={`absolute top-0.5 w-2.5 h-2.5 bg-white rounded-full transition-all duration-300 shadow-md ${isStreaming ? 'left-[14px]' : 'left-0.5'}`} />
+                        <button onClick={() => setIsStreaming(!isStreaming)} aria-pressed={isStreaming} className={`flex items-center gap-1.5 px-1.5 py-1 rounded-lg border transition-colors group focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${isStreaming ? 'bg-white/10 border-white/20' : 'border-transparent hover:bg-white/5'}`}>
+                            <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative border ${isStreaming ? 'bg-neutral-300 border-neutral-300' : 'bg-white/10 border-white/10'}`}>
+                                <div className={`absolute top-0.5 w-2.5 h-2.5 rounded-full transition-all duration-300 shadow-md ${isStreaming ? 'left-[14px] bg-neutral-900' : 'left-0.5 bg-white'}`} />
                             </div>
-                            <span className="text-[9px] uppercase font-bold tracking-wider text-neutral-400 group-hover:text-neutral-200 transition-colors whitespace-nowrap">{t('Stream')}</span>
+                            <span className={`text-[9px] uppercase font-bold tracking-wider transition-colors whitespace-nowrap ${isStreaming ? 'text-white' : 'text-neutral-400 group-hover:text-neutral-200'}`}>{t('Stream')}</span>
                         </button>
                     </div>
                 </div>

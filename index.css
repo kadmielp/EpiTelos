@@ -329,6 +329,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .app-shell .prose a { color: #e5e5e5; text-decoration: underline; text-underline-offset: 2px; }
 .app-shell .prose code { color: #e5e5e5; }
 .app-shell .prose pre { background: #171717; border: 1px solid #414141; color: #e5e5e5; box-shadow: none; }
+.app-shell .response-markdown pre {
+  max-width: 100%;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.app-shell .response-markdown pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .app-shell .prose table { background: #202020; border-color: #414141; box-shadow: none; border-radius: 10px; }
 .app-shell .prose th { color: #eeeeee; border-color: #414141; }
 .app-shell .prose td { color: #d4d4d4; border-color: #353535; }
