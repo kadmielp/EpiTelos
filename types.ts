@@ -39,14 +39,18 @@ export interface TreeNode {
 
 
 export interface ISettings {
+  language: 'en' | 'pt-BR';
   apiKey: string; // Gemini API Key from env (deprecated)
-  modelSource: 'Gemini' | 'Ollama' | 'OpenAI' | 'Custom' | 'Maritaca';
+  modelSource: 'Gemini' | 'Ollama' | 'OpenAI' | 'Custom' | 'Maritaca' | 'Local GGUF';
   preferredModel: string;
   geminiModel?: string;
   ollamaModel?: string;
   openaiModel?: string;
   maritacaModel?: string;
   customModel?: string;
+  localGgufModel?: string;
+  localGgufModels?: string[];
+  localGgufBackend?: 'auto' | 'cpu' | 'cuda' | 'vulkan';
   ollamaApiUrl?: string;
   openaiApiKey?: string;
   geminiApiKey?: string;

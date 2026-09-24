@@ -1,14 +1,14 @@
 {
   "build": {
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "powershell -ExecutionPolicy Bypass -File scripts/prepare-llama-runtimes.ps1 && npm run build",
     "devPath": "http://localhost:5173",
     "distDir": "../dist",
     "withGlobalTauri": true
   },
   "package": {
     "productName": "EpiTelos",
-    "version": "1.6.1"
+    "version": "1.7.0"
   },
   "tauri": {
     "allowlist": {
@@ -42,6 +42,8 @@
     "bundle": {
       "active": true,
       "targets": "all",
+      "resources": ["resources/local_gguf/**/*", "resources/LLAMA_CPP_LICENSE.txt"],
+      "windows": { "nsis": { "compression": "zlib" } },
       "identifier": "com.epitelos.dev",
       "icon": [
         "icons/icon.ico",

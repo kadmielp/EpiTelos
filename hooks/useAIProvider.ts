@@ -5,27 +5,33 @@ import * as ollamaService from '../services/ollamaService';
 import * as openaiService from '../services/openaiService';
 import * as customProviderService from '../services/customProviderService';
 import * as maritacaService from '../services/maritacaService';
+import * as localGgufService from '../services/localGgufService';
 import * as webFileService from '../services/fileService';
 import * as desktopFileService from '../services/desktopFileService';
+import { translate, normalizeLanguage } from '../i18n';
 
 // @ts-ignore
 const isDesktop = !!window.__TAURI__;
 const fileService = isDesktop ? desktopFileService : webFileService;
 
 export const useAIProvider = (settings: ISettings) => {
+    const t = (key: string) => translate(normalizeLanguage(settings.language), key);
     const [availableModels, setAvailableModels] = useState<string[]>([]);
     const [modelVerificationStatus, setModelVerificationStatus] = useState<VerificationStatus | null>(null);
     const [aiResponse, setAiResponse] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const verificationIdRef = useRef(0);
 
     const verifyAndLoadModels = useCallback(async (source: ISettings['modelSource'], settingsToVerify: ISettings) => {
-        setModelVerificationStatus({ type: 'verifying', message: 'Verifying...' });
+        const verificationId = ++verificationIdRef.current;
+        setModelVerificationStatus({ type: 'verifying', message: t('Verifying...') });
         setAvailableModels([]);
         let result: { success: boolean; message: string };
         let models: string[] = [];
 
         try {
+            if (source !== 'Local GGUF' && isDesktop) await localGgufService.stopModel();
             switch (source) {
                 case 'Gemini':
                     result = await geminiService.verifyConnection(settingsToVerify.geminiApiKey || '');
@@ -38,6 +44,19 @@ export const useAIProvider = (settings: ISettings) => {
                 case 'Ollama':
                     result = await ollamaService.verifyConnection(settingsToVerify.ollamaApiUrl || '');
                     if (result.success) models = await ollamaService.getModels(settingsToVerify.ollamaApiUrl || '');
+                    break;
+                case 'Local GGUF':
+                    if (!isDesktop) {
+                        result = { success: false, message: 'Local GGUF requires the Windows desktop app.' };
+                        break;
+                    }
+                    models = settingsToVerify.localGgufModels || [];
+                    if (settingsToVerify.preferredModel) {
+                        const status = await localGgufService.startModel(settingsToVerify.preferredModel, settingsToVerify.localGgufBackend || 'auto');
+                        result = { success: true, message: `${t('Ready on ')}${status.backend.toUpperCase()}` };
+                    } else {
+                        result = { success: true, message: models.length ? 'Select a model to load it.' : 'Add a GGUF model file.' };
+                    }
                     break;
                 case 'Custom':
                     result = await customProviderService.verifyConnection(
@@ -60,21 +79,23 @@ export const useAIProvider = (settings: ISettings) => {
                     );
                     break;
                 default:
-                    result = { success: false, message: "Invalid model source selected." };
+                    result = { success: false, message: t("Invalid model source selected.") };
             }
 
+            if (verificationId !== verificationIdRef.current) return;
             if (result.success) {
-                setModelVerificationStatus({ type: 'success', message: result.message });
+                setModelVerificationStatus({ type: 'success', message: t(result.message) });
                 setAvailableModels(models);
             } else {
                 throw new Error(result.message);
             }
         } catch (error) {
-            const message = error instanceof Error ? error.message : "An unknown error occurred.";
-            setModelVerificationStatus({ type: 'error', message });
-            setAvailableModels([]);
+            if (verificationId !== verificationIdRef.current) return;
+            const message = error instanceof Error ? error.message : t("An unknown error occurred.");
+            setModelVerificationStatus({ type: 'error', message: t(message) });
+            setAvailableModels(source === 'Local GGUF' ? (settingsToVerify.localGgufModels || []) : []);
         }
-    }, []);
+    }, [settings.language]);
 
     const handleStopGeneration = useCallback(() => {
         if (abortControllerRef.current) {
@@ -115,17 +136,23 @@ export const useAIProvider = (settings: ISettings) => {
         });
         const contextContent = await fileService.readContextSources(sourcesToRead);
         const fullUserPrompt = `${contextContent}\n\n--- USER INPUT ---\n${userInput}`;
+        const languageInstruction = settings.language === 'pt-BR'
+            ? 'Reply in Brazilian Portuguese by default. If the function instructions or the user explicitly require another language, follow that requirement. Preserve code, quotations, identifiers, and source content as needed.'
+            : 'Reply in English by default. If the function instructions or the user explicitly require another language, follow that requirement. Preserve code, quotations, identifiers, and source content as needed.';
+        const requestSystemPrompt = `${func.systemPrompt}\n\n--- RESPONSE LANGUAGE ---\n${languageInstruction}`;
 
         try {
             if (isStreaming) {
                 const streamParams = {
-                    systemPrompt: func.systemPrompt,
+                    systemPrompt: requestSystemPrompt,
                     userPrompt: fullUserPrompt,
                     model: settings.preferredModel,
                     signal: controller.signal,
                 };
                 const getStream = () => {
                     switch (settings.modelSource) {
+                        case 'Local GGUF':
+                            return localGgufService.runLocalFunctionStream(streamParams);
                         case 'Ollama':
                             return ollamaService.runOllamaFunctionStream({
                                 ...streamParams,
@@ -209,13 +236,16 @@ export const useAIProvider = (settings: ISettings) => {
                 }
             } else {
                 const fetchParams = {
-                    systemPrompt: func.systemPrompt,
+                    systemPrompt: requestSystemPrompt,
                     userPrompt: fullUserPrompt,
                     model: settings.preferredModel,
                     signal: controller.signal,
                 };
                 let response = '';
                 switch (settings.modelSource) {
+                    case 'Local GGUF':
+                        response = await localGgufService.runLocalFunction(fetchParams);
+                        break;
                     case 'Ollama':
                         response = await ollamaService.runOllamaFunction({
                             ...fetchParams,
@@ -261,14 +291,14 @@ export const useAIProvider = (settings: ISettings) => {
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
                 setAiResponse(prev => prev
-                    ? prev + "\n\n[Generation stopped by user.]"
-                    : "Generation stopped."
+                    ? prev + `\n\n${t('[Generation stopped by user.]')}`
+                    : t("Generation stopped.")
                 );
             } else {
                 setAiResponse(
                     error instanceof Error
-                        ? error.message
-                        : "An unknown error occurred during AI execution."
+                        ? t(error.message)
+                        : t("An unknown error occurred during AI execution.")
                 );
             }
         } finally {

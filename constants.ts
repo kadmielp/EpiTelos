@@ -8,6 +8,7 @@ const apiKey = typeof process !== 'undefined' && process.env?.API_KEY
   : import.meta.env?.VITE_API_KEY;
 
 export const DEFAULT_SETTINGS: ISettings = {
+  language: 'en',
   apiKey: apiKey || '', // Deprecated, keeping for backward compatibility
   modelSource: 'Ollama',
   preferredModel: '', // Set to empty to allow auto-selection of first available Ollama model
@@ -16,6 +17,9 @@ export const DEFAULT_SETTINGS: ISettings = {
   openaiModel: '',
   maritacaModel: '',
   customModel: '',
+  localGgufModel: '',
+  localGgufModels: [],
+  localGgufBackend: 'auto',
   ollamaApiUrl: 'http://localhost:11434',
   openaiApiKey: '',
   geminiApiKey: '',

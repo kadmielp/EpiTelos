@@ -26,6 +26,7 @@ dist-ssr
 # Tauri build artifacts
 src-tauri/target/
 src-tauri/bundle/
+src-tauri/resources/local_gguf/
 
 # Claude settings (may contain sensitive info)
 .claude/

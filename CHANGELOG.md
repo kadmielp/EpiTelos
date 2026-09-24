@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning.
 
+## [Unreleased]
+
+## [1.7.0] - 2026-09-24
+
+### Added
+- **Local GGUF models**: Open downloaded models directly in the Windows desktop app, with managed llama.cpp CPU, CUDA, and Vulkan runtimes, streaming, cancellation, and a CPU retry option.
+- **Brazilian Portuguese**: Choose English or Brazilian Portuguese for the interface and default response language.
+
+### Changed
+- **Focused workspace design**: Updated navigation, page layouts, settings, dialogs, response styling, and branding with a consistent monochrome theme and clearer control states.
+- **Model preferences**: Preserve the selected model when switching between AI providers.
+- **Windows packaging**: Include the local inference runtimes in the installer and verify pinned downloads during the build.
+
+### Fixed
+- **Local model switching**: Prevent an older load request from interrupting a newer model selection.
+
 ## [1.6.1] - 2026-02-15
 
 ### Added

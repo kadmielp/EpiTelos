@@ -30,6 +30,7 @@ import { useContextManager } from './hooks/useContextManager';
 import { useAIProvider } from './hooks/useAIProvider';
 import { useFunctions } from './hooks/useFunctions';
 import { useArchives } from './hooks/useArchives';
+import { LanguageProvider, normalizeLanguage, translate } from './i18n';
 
 const fileService = isDesktop ? desktopFileService : webFileService;
 
@@ -39,6 +40,8 @@ const App: React.FC = () => {
 
   // Modular Hooks
   const profile = useAppProfile();
+  const language = normalizeLanguage(profile.settings.language);
+  const t = (key: string) => translate(language, key);
   const functions = useFunctions();
   const context = useContextManager(
     profile.userAddedContexts,
@@ -111,7 +114,7 @@ const App: React.FC = () => {
       ]);
 
       if (loadedProfile) {
-        const migratedSettings = { ...DEFAULT_SETTINGS, ...loadedProfile.settings };
+        const migratedSettings = { ...DEFAULT_SETTINGS, ...loadedProfile.settings, language: normalizeLanguage(loadedProfile.settings?.language) };
         profile.setSettings(migratedSettings);
         profile.setUserAddedContexts(loadedProfile.contexts || []);
       } else {
@@ -131,6 +134,11 @@ const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only once at mount
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.title = language === 'pt-BR' ? 'EpiTelos — Espaço para pensar' : 'EpiTelos — Thinking workspace';
+  }, [language]);
+
   // Provider Verification
   useEffect(() => {
     ai.verifyAndLoadModels(profile.settings.modelSource, profile.settings);
@@ -138,11 +146,15 @@ const App: React.FC = () => {
   }, [
     profile.settings.modelSource,
     profile.settings.ollamaApiUrl,
+    profile.settings.preferredModel,
+    profile.settings.localGgufBackend,
+    profile.settings.localGgufModels,
     profile.settings.openaiApiKey,
     profile.settings.customApiUrl,
     profile.settings.customApiKey,
     profile.settings.maritacaApiUrl,
-    profile.settings.maritacaApiKey
+    profile.settings.maritacaApiKey,
+    profile.settings.language
   ]);
 
   const handleRunFunction = () => {
@@ -160,7 +172,7 @@ const App: React.FC = () => {
         // 1. Play notifications
         if (profile.settings.notificationEnabled) {
           playNotificationSound();
-          sendSystemNotification("EpiTelos Intelligence", "AI process complete. Response is ready.");
+          sendSystemNotification("EpiTelos", t("AI process complete. Response is ready."));
         }
 
         // 2. Extract reasoning block if present
@@ -195,15 +207,15 @@ const App: React.FC = () => {
     const source = context.displayContexts.find(c => c.id === contextId);
     if (!source || source.isFolderMarker) return;
 
-    setInspectModalTitle(`Inspecting: ${source.remark}`);
-    setInspectModalContent("Loading content...");
+    setInspectModalTitle(`${t('Inspecting: ')}${source.remark}`);
+    setInspectModalContent(t("Loading content..."));
     setIsInspectModalOpen(true);
 
     try {
       const content = await fileService.getRawContextForInspection(source);
       setInspectModalContent(content);
     } catch {
-      setInspectModalContent("Could not load content for this source.");
+      setInspectModalContent(t("Could not load content for this source."));
     }
   }, [context.displayContexts]);
 
@@ -223,8 +235,8 @@ const App: React.FC = () => {
     // We can't perfectly reconstruct the path, but we can try to read it
     // The context source might still exist on disk
     const displayName = encoded.split('--').pop()?.replace(/-/g, ' ').trim() || contextId;
-    setInspectModalTitle(`Inspecting: ${displayName}`);
-    setInspectModalContent("Loading content...");
+    setInspectModalTitle(`${t('Inspecting: ')}${displayName}`);
+    setInspectModalContent(t("Loading content..."));
     setIsInspectModalOpen(true);
 
     try {
@@ -238,10 +250,10 @@ const App: React.FC = () => {
         const content = await fileService.getRawContextForInspection(matchingSource);
         setInspectModalContent(content);
       } else {
-        setInspectModalContent("This file is no longer available in your current context sources.\n\nTo inspect it, re-add it via the Context page.");
+        setInspectModalContent(t("This file is no longer available in your current context sources.\n\nTo inspect it, re-add it via the Context page."));
       }
     } catch {
-      setInspectModalContent("Could not load content for this source.");
+      setInspectModalContent(t("Could not load content for this source."));
     }
   }, [context.displayContexts, handleViewContext]);
 
@@ -331,25 +343,14 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-slate-900 via-slate-900 to-slate-950 text-slate-200 selection:bg-blue-500/20 overflow-hidden">
+    <LanguageProvider language={language}><div className="app-shell flex h-screen w-screen overflow-hidden">
       <Sidebar
         currentView={currentView}
         setCurrentView={setCurrentView}
-        isCollapsed={profile.settings.sidebarCollapsed || false}
-        onToggle={() => profile.updateSettings({ sidebarCollapsed: !profile.settings.sidebarCollapsed })}
       />
 
-      <main className="flex-1 overflow-hidden relative bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
-        {/* Global Background Overlays */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
-        </div>
-
-        <div
-          key={currentView}
-          className="h-full w-full animate-slide-up relative z-10"
-        >
+      <main className="app-main flex-1 overflow-hidden relative">
+        <div key={currentView} className="h-full w-full">
           {renderView()}
         </div>
       </main>
@@ -359,31 +360,31 @@ const App: React.FC = () => {
         onClose={() => setIsInspectModalOpen(false)}
         title={inspectModalTitle}
       >
-        <pre className="whitespace-pre-wrap bg-slate-900 p-4 rounded text-slate-300 text-sm max-h-[60vh] overflow-y-auto custom-scrollbar">
+        <pre className="whitespace-pre-wrap bg-neutral-900 p-4 rounded text-neutral-200 text-sm max-h-[60vh] overflow-y-auto custom-scrollbar">
           {inspectModalContent}
         </pre>
       </Modal>
 
-      <Modal isOpen={profile.showSessionModal} title="Welcome Back">
-        <p className="text-slate-300 mb-6">
-          You have a saved session. Would you like to resume where you left off?
+      <Modal isOpen={profile.showSessionModal} title={t("Welcome Back")}>
+        <p className="text-neutral-200 mb-6">
+          {t('You have a saved session. Would you like to resume where you left off?')}
         </p>
         <div className="flex justify-end space-x-4">
           <button
             onClick={startNewSession}
-            className="px-4 py-2 rounded-md bg-slate-600 hover:bg-slate-700 text-white font-semibold transition-colors"
+            className="px-4 py-2 rounded-md bg-neutral-600 hover:bg-neutral-700 text-white font-semibold transition-colors"
           >
-            Start New Session
+            {t('Start New Session')}
           </button>
           <button
             onClick={resumeLastSession}
-            className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
+            className="px-4 py-2 rounded-md bg-neutral-700 hover:bg-neutral-700 text-white font-semibold transition-colors"
           >
-            Resume Last Session
+            {t('Resume Last Session')}
           </button>
         </div>
       </Modal>
-    </div>
+    </div></LanguageProvider>
   );
 };
 

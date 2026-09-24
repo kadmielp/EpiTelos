@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ISettings, IContextSource, ISession, VerificationStatus, View } from '../types';
 import { DEFAULT_SETTINGS } from '../constants';
+import { normalizeLanguage, translate } from '../i18n';
 import * as webFileService from '../services/fileService';
 import * as desktopFileService from '../services/desktopFileService';
 
@@ -24,8 +25,13 @@ export const useAppProfile = () => {
         setSettings(prevSettings => {
             let updated = { ...prevSettings, ...newSettings };
 
+            if (newSettings.modelSource && newSettings.modelSource !== prevSettings.modelSource) {
+                const modelField = newSettings.modelSource === 'Local GGUF' ? 'localGgufModel' : `${newSettings.modelSource.toLowerCase()}Model`;
+                updated.preferredModel = String(prevSettings[modelField as keyof ISettings] || '');
+            }
+
             if (newSettings.preferredModel !== undefined) {
-                const sourceField = `${updated.modelSource.toLowerCase()}Model` as keyof ISettings;
+                const sourceField = (updated.modelSource === 'Local GGUF' ? 'localGgufModel' : `${updated.modelSource.toLowerCase()}Model`) as keyof ISettings;
                 updated = {
                     ...updated,
                     [sourceField]: newSettings.preferredModel
@@ -96,7 +102,7 @@ export const useAppProfile = () => {
         if (profileJson) {
             try {
                 const importedProfile = JSON.parse(profileJson);
-                const migratedSettings = { ...DEFAULT_SETTINGS, ...importedProfile.settings };
+                const migratedSettings = { ...DEFAULT_SETTINGS, ...importedProfile.settings, language: normalizeLanguage(importedProfile.settings?.language) };
                 const migratedContexts = (importedProfile.contexts || []).map((c: any) => ({
                     ...c,
                     type: c.type || 'folder',
@@ -106,9 +112,9 @@ export const useAppProfile = () => {
                 setSettings(migratedSettings);
                 setUserAddedContexts(migratedContexts);
                 await saveProfile(migratedSettings, migratedContexts);
-                alert('Profile imported successfully!');
+                alert(translate(migratedSettings.language, 'Profile imported successfully!'));
             } catch {
-                alert('Failed to import profile. The file might be corrupted.');
+                alert(translate(settings.language, 'Failed to import profile. The file might be corrupted.'));
             }
         }
     };

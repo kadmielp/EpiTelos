@@ -74,6 +74,14 @@ The **Context Manager** is where you curate the data sources the AI is allowed t
 Configure your AI providers and application behavior.
 
 - **Provider Management**: Full support for **Ollama** (Local), **Maritaca AI**, **OpenAI**, **Gemini**, and **Custom OpenAI-compatible** endpoints.
+
+### Local GGUF models (Windows desktop)
+
+In Settings, choose **Local GGUF**, add one or more downloaded `.gguf` files, then select a model. EpiTelos starts a bundled llama.cpp server locally and loads one model at a time. No API key or model download is required. The browser build cannot run local GGUF models.
+
+The Windows desktop bundle includes llama.cpp `b11163` CPU, CUDA 12.4, and Vulkan x64 runtimes. Automatic mode tries CUDA when an NVIDIA GPU is detected, Vulkan for another detected GPU, and CPU otherwise. A GPU requires a compatible driver and enough memory; if loading fails, choose **CPU** in Settings and select **Load Model**. Some GGUF models may need chat templates or more memory than the machine provides. Loading status and failures appear in Settings; detailed startup logs are written to the app log directory as `local-gguf.log`.
+
+The runtimes are downloaded with SHA-256 verification during Windows desktop packaging via `scripts/prepare-llama-runtimes.ps1`. llama.cpp is MIT licensed; its license is bundled in `src-tauri/resources/LLAMA_CPP_LICENSE.txt`. CUDA redistributable libraries come from the pinned llama.cpp release and remain subject to NVIDIA's applicable redistribution terms. Users supply their own model files and are responsible for their model licenses.
 - **Intelligence Memory**: The app remembers which model you prefer for *each* provider, automatically switching back to your favorite when you change sources.
 - **Interface Preferences**:
     - **Completion Notifications**: Opt-in to a premium "Double-Chime" sound and native OS system popups when the AI finishing generating, allowing you to multitask while it works.

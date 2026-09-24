@@ -1,3 +1,4 @@
+import { useLanguage } from '../i18n';
 import React, { useState, useCallback } from 'react';
 import { IAIFunction, IContextSource } from '../types';
 import { Modal } from './Modal';
@@ -55,6 +56,7 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
   availableModels,
   isDesktop
 }) => {
+    const { t } = useLanguage();
   const [collapsedLeft, setCollapsedLeft] = useState(false);
   const [copyStatus, setCopyStatus] = useState(false);
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
@@ -99,12 +101,16 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
   const selectedFunction = functions.find(f => f.id === selectedFunctionId);
 
   return (
-    <div className="h-full flex flex-col text-slate-200">
+    <div className="runner-page h-full flex flex-col">
+      <header className="page-heading runner-heading">
+        <div><p className="eyebrow">{t('WORKSPACE / NEW SESSION')}</p><h1>{t('Think with clarity.')}</h1><p className="page-subtitle">{t('Choose a function, bring in your sources, and start a focused run.')}</p></div>
+        <span className="heading-badge">{t('NEW SESSION')}</span>
+      </header>
 
-      <div className="flex flex-grow min-h-0 z-10 p-3 pt-4 gap-3">
+      <div className="runner-layout flex flex-grow min-h-0 z-10 gap-5">
         {/* Control Hub Aside */}
         <aside
-          className={`flex flex-col bg-slate-900/60 backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapsedLeft ? 'w-0 opacity-0 pointer-events-none' : 'w-[40%] max-w-[500px] opacity-100'}`}
+          className={`runner-controls flex flex-col overflow-hidden flex-shrink-0 transition-all duration-300 ${collapsedLeft ? 'w-0 opacity-0 pointer-events-none' : 'w-[40%] max-w-[500px] opacity-100'}`}
         >
           <ControlHub
             functions={functions}
@@ -134,14 +140,15 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
         <div className="relative flex items-center justify-center w-4 flex-shrink-0 z-20">
           <button
             onClick={() => setCollapsedLeft(!collapsedLeft)}
-            className="absolute top-1/2 -translate-y-1/2 w-5 h-10 bg-slate-900 border border-white/10 rounded-full flex items-center justify-center text-slate-500 hover:text-white hover:bg-slate-800 transition-all shadow-2xl opacity-60 hover:opacity-100"
+            className="runner-divider-toggle absolute top-1/2 -translate-y-1/2 w-5 h-10 flex items-center justify-center transition-all"
+            aria-label={t(collapsedLeft ? 'Show setup panel' : 'Hide setup panel')}
           >
             <ChevronRightIcon className={`w-3.5 h-3.5 transition-transform duration-500 ${collapsedLeft ? '' : 'rotate-180'}`} />
           </button>
         </div>
 
         {/* Response Main Area */}
-        <main className="flex flex-col bg-slate-900/20 backdrop-blur-2xl rounded-3xl border border-white/5 flex-grow min-w-0 shadow-2xl overflow-hidden relative">
+        <main className="runner-output flex flex-col flex-grow min-w-0 overflow-hidden relative">
           <ResponseTerminal
             aiResponse={aiResponse}
             isLoading={isLoading}
@@ -158,11 +165,11 @@ export const FunctionRunner: React.FC<FunctionRunnerProps> = ({
         <Modal
           isOpen={showSystemPrompt}
           onClose={() => setShowSystemPrompt(false)}
-          title={`Intelligence Core: ${selectedFunction.name}`}
+          title={`${t('System prompt: ')}${selectedFunction.name}`}
         >
           <div className="space-y-6 p-1">
-            <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest">System Architecture Reference</p>
-            <div className="bg-slate-950 rounded-2xl p-6 border border-white/10 font-mono text-[11px] text-slate-300 leading-relaxed max-h-[65vh] overflow-y-auto custom-scrollbar whitespace-pre-wrap shadow-inner selection:bg-blue-500/40">
+            <p className="text-sm text-neutral-400">{t('Instructions used by this function')}</p>
+            <div className="bg-neutral-950 rounded-2xl p-6 border border-white/10 font-mono text-[11px] text-neutral-200 leading-relaxed max-h-[65vh] overflow-y-auto custom-scrollbar whitespace-pre-wrap shadow-inner selection:bg-neutral-500/40">
               {selectedFunction.systemPrompt}
             </div>
           </div>

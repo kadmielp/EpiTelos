@@ -1,3 +1,4 @@
+import { useLanguage } from '../../i18n';
 import React, { useState, useRef, useEffect } from 'react';
 import { IAIFunction, IContextSource, TreeNode } from '../../types';
 import { ExternalLinkIcon } from '../icons/ExternalLinkIcon';
@@ -52,6 +53,7 @@ export const ControlHub: React.FC<ControlHubProps> = ({
     setShowSystemPrompt,
     handleViewContext
 }) => {
+    const { t } = useLanguage();
     const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
     const [isFunctionDropdownOpen, setIsFunctionDropdownOpen] = useState(false);
     const [functionSearchQuery, setFunctionSearchQuery] = useState('');
@@ -96,42 +98,42 @@ export const ControlHub: React.FC<ControlHubProps> = ({
     return (
         <>
             <div className="px-5 py-4 border-b border-white/5 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Control Hub</h2>
+                <div className="w-2 h-2 rounded-full bg-neutral-500 " />
+                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-300">{t('SETUP')}</h2>
             </div>
 
             <div className="flex-grow overflow-y-auto custom-scrollbar p-5 space-y-3">
                 <section className="space-y-3">
-                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Active Function</label>
+                    <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">{t('Function')}</label>
                     <div ref={functionDropdownRef} className="relative">
-                        <div className={`bg-slate-900/60 border border-white/10 overflow-hidden transition-all ${selectedFunction?.description ? 'rounded-t-xl' : 'rounded-xl'}`}>
+                        <div className={`bg-neutral-900/60 border border-white/10 overflow-hidden transition-all ${selectedFunction?.description ? 'rounded-t-xl' : 'rounded-xl'}`}>
                             <button
                                 onClick={() => setIsFunctionDropdownOpen(!isFunctionDropdownOpen)}
-                                className="w-full px-4 py-3 text-left transition-all hover:bg-slate-800/60 group flex items-center justify-between"
+                                className="w-full px-4 py-3 text-left transition-all hover:bg-neutral-800/60 group flex items-center justify-between"
                             >
                                 <div className="flex items-center gap-3 overflow-hidden flex-grow min-w-0">
-                                    <p className={`text-sm font-semibold truncate ${selectedFunction ? 'text-white' : 'text-slate-500'}`}>
-                                        {selectedFunction ? selectedFunction.name : 'Select function...'}
+                                    <p className={`text-sm font-semibold truncate ${selectedFunction ? 'text-white' : 'text-neutral-400'}`}>
+                                        {selectedFunction ? selectedFunction.name : t('Select function...')}
                                     </p>
                                     {selectedFunction && (
-                                        <span className="text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">
-                                            {selectedFunction.category || 'Standard'}
+                                        <span className="text-[10px] text-neutral-400 bg-white/5 px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">
+                                            {selectedFunction.category || t('Standard')}
                                         </span>
                                     )}
                                 </div>
-                                <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform duration-300 flex-shrink-0 ml-2 ${isFunctionDropdownOpen ? 'rotate-180' : ''}`} />
+                                <ChevronDownIcon className={`w-4 h-4 text-neutral-400 transition-transform duration-300 flex-shrink-0 ml-2 ${isFunctionDropdownOpen ? 'rotate-180' : ''}`} />
                             </button>
                         </div>
 
                         {selectedFunction?.description && (
-                            <div className="bg-slate-900/40 border-x border-b border-white/10 rounded-b-xl px-4 py-3 flex items-start justify-between gap-2">
-                                <p className="text-xs text-slate-500 leading-relaxed italic line-clamp-2 flex-grow">
+                            <div className="bg-neutral-900/40 border-x border-b border-white/10 rounded-b-xl px-4 py-3 flex items-start justify-between gap-2">
+                                <p className="text-xs text-neutral-400 leading-relaxed italic line-clamp-2 flex-grow">
                                     "{selectedFunction.description}"
                                 </p>
                                 <button
                                     onClick={() => setShowSystemPrompt(true)}
-                                    className="p-1 rounded-lg hover:bg-white/10 text-slate-600 hover:text-blue-400 transition-all flex-shrink-0"
-                                    title="View System Prompt"
+                                    className="p-1 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-neutral-200 transition-all flex-shrink-0"
+                                    title={t('View System Prompt')}
                                 >
                                     <ExternalLinkIcon className="w-3.5 h-3.5" />
                                 </button>
@@ -139,33 +141,33 @@ export const ControlHub: React.FC<ControlHubProps> = ({
                         )}
 
                         {isFunctionDropdownOpen && (
-                            <div className="absolute top-full left-0 right-0 mt-3 bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-top-2 flex flex-col max-h-[450px]">
+                            <div className="absolute top-full left-0 right-0 mt-3 bg-neutral-900 border border-white/10 rounded-2xl  z-50 overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-top-2 flex flex-col max-h-[450px]">
                                 <div className="p-3 border-b border-white/5">
                                     <input
                                         autoFocus
                                         type="text"
-                                        placeholder="Search intelligence..."
+                                        placeholder={t('Search functions...')}
                                         value={functionSearchQuery}
                                         onChange={(e) => setFunctionSearchQuery(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder:text-neutral-400 focus:outline-none focus:border-neutral-500/50 transition-all"
                                     />
                                 </div>
                                 <div className="flex-grow overflow-y-auto custom-scrollbar p-2 space-y-4">
                                     {Object.entries(
                                         filteredFunctions.reduce((acc, f) => {
-                                            const cat = f.category || (f.isCustom ? 'Custom Intelligence' : 'General');
+                                            const cat = f.category || t(f.isCustom ? 'Custom' : 'General');
                                             if (!acc[cat]) acc[cat] = [];
                                             acc[cat].push(f);
                                             return acc;
                                         }, {} as Record<string, typeof functions>)
                                     ).sort((a, b) => a[0].localeCompare(b[0])).map(([cat, funcs]) => (
                                         <div key={cat}>
-                                            <p className="px-2 text-[9px] font-black uppercase tracking-widest text-slate-600 mb-1">{cat}</p>
+                                            <p className="px-2 text-[9px] font-black uppercase tracking-widest text-neutral-400 mb-1">{cat}</p>
                                             {funcs.sort((a, b) => a.name.localeCompare(b.name)).map(f => (
                                                 <button
                                                     key={f.id}
                                                     onClick={() => { setSelectedFunctionId(f.id); setIsFunctionDropdownOpen(false); setFunctionSearchQuery(''); }}
-                                                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all flex items-center justify-between group/item ${selectedFunctionId === f.id ? 'bg-blue-600 text-white' : 'hover:bg-white/5 text-slate-300'}`}
+                                                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all flex items-center justify-between group/item ${selectedFunctionId === f.id ? 'bg-neutral-700 text-white' : 'hover:bg-white/5 text-neutral-200'}`}
                                                 >
                                                     <span className="font-medium">{f.name}</span>
                                                 </button>
@@ -179,8 +181,8 @@ export const ControlHub: React.FC<ControlHubProps> = ({
                 </section>
 
                 <section className="space-y-3">
-                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Knowledge Sources</label>
-                    <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-2 max-h-[280px] overflow-y-auto custom-scrollbar">
+                    <label className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">{t('Sources')}</label>
+                    <div className="bg-neutral-900/60 border border-white/10 rounded-2xl p-2 max-h-[280px] overflow-y-auto custom-scrollbar">
                         {contexts.length > 0 ? (
                             <ContextTreeView
                                 contexts={contexts}
@@ -202,23 +204,23 @@ export const ControlHub: React.FC<ControlHubProps> = ({
                                                         checked={isChecked}
                                                         ref={el => { if (el) el.indeterminate = isIndeterminate; }}
                                                         onChange={(e) => handleContextToggle(node, e.target.checked)}
-                                                        className="peer appearance-none h-4 w-4 rounded-lg bg-slate-800 border border-white/10 checked:bg-blue-600 checked:border-blue-500 transition-all cursor-pointer"
+                                                        className="peer appearance-none h-4 w-4 rounded-lg bg-neutral-800 border border-white/10 checked:bg-neutral-700 checked:border-neutral-500 transition-all cursor-pointer"
                                                     />
                                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-white opacity-0 peer-checked:opacity-100 transition-opacity">
                                                         <CheckIcon className="w-2.5 h-2.5 stroke-[3]" />
                                                     </div>
                                                 </div>
                                                 <label htmlFor={`ctx-${node.id}`} className="ml-3 text-xs flex items-center min-w-0 cursor-pointer select-none">
-                                                    <span className={`mr-2.5 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${isFolder ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
-                                                        {isFolder ? 'DIR' : 'FILE'}
+                                                    <span className={`mr-2.5 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${isFolder ? 'bg-neutral-500/10 text-neutral-200' : 'bg-neutral-500/10 text-neutral-200'}`}>
+                                                        {t(isFolder ? 'DIR' : 'FILE')}
                                                     </span>
-                                                    <span className={`truncate ${isChecked ? 'text-white' : 'text-slate-400'}`}>{node.source?.remark || node.name}</span>
+                                                    <span className={`truncate ${isChecked ? 'text-white' : 'text-neutral-300'}`}>{node.source?.remark || node.name}</span>
                                                 </label>
                                             </div>
                                             {node.source && (
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleViewContext(node.source!.id); }}
-                                                    className="p-1.5 text-slate-600 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all"
+                                                    className="p-1.5 text-neutral-400 hover:text-neutral-200 opacity-0 group-hover:opacity-100 transition-all"
                                                 >
                                                     <ExternalLinkIcon className="w-3.5 h-3.5" />
                                                 </button>
@@ -228,42 +230,42 @@ export const ControlHub: React.FC<ControlHubProps> = ({
                                 }}
                             />
                         ) : (
-                            <div className="py-10 text-center text-slate-600">
-                                <p className="text-xs">No knowledge sources available</p>
+                            <div className="py-10 text-center text-neutral-400">
+                                <p className="text-xs">{t('No sources added yet')}</p>
                             </div>
                         )}
                     </div>
                 </section>
 
                 <section className="space-y-2">
-                    <label htmlFor="user-input" className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Custom Instructions</label>
+                    <label htmlFor="user-input" className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">{t('Your prompt')}</label>
                     <textarea
                         id="user-input"
                         rows={1}
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
-                        placeholder="Add more context to the AI..."
-                        className="w-full bg-slate-900/60 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-slate-700 outline-none focus:border-blue-500/50 transition-all resize-none custom-scrollbar"
+                        placeholder={t('What would you like to explore?')}
+                        className="w-full bg-neutral-900/60 border border-white/10 rounded-xl p-3 text-sm text-white placeholder:text-neutral-400 outline-none focus:border-neutral-500/50 transition-all resize-none custom-scrollbar"
                     />
                 </section>
             </div>
 
             <div className="p-3 border-t border-white/[0.08] space-y-2.5">
                 <div className="flex items-center justify-center">
-                    <div className="flex items-center gap-2 bg-slate-900/60 p-1.5 px-2.5 rounded-xl border border-white/5 backdrop-blur-2xl shadow-lg">
+                    <div className="flex items-center gap-2 bg-neutral-900/60 p-1.5 px-2.5 rounded-xl border border-white/5 backdrop-blur-2xl shadow-lg">
                         {availableModels.length > 0 && (
                             <div ref={modelSelectorRef} className="relative flex items-center">
-                                <button onClick={() => setIsModelSelectorOpen(!isModelSelectorOpen)} className="text-[10px] bg-slate-800/50 hover:bg-slate-700/50 px-2.5 py-1.5 rounded-lg border border-white/5 transition-all flex items-center gap-2 group/btn">
-                                    <span className="text-slate-500 font-bold tracking-widest text-[9px]">MODEL</span>
-                                    <span className="text-blue-400 font-black truncate max-w-[100px]">{selectedModel || 'NONE'}</span>
-                                    <ChevronDownIcon className={`w-3.5 h-3.5 text-slate-500 group-hover/btn:text-blue-400 transition-transform duration-300 ${isModelSelectorOpen ? 'rotate-180' : ''}`} />
+                                <button onClick={() => setIsModelSelectorOpen(!isModelSelectorOpen)} className="text-[10px] bg-neutral-800/50 hover:bg-neutral-700/50 px-2.5 py-1.5 rounded-lg border border-white/5 transition-all flex items-center gap-2 group/btn">
+                                    <span className="text-neutral-400 font-bold tracking-widest text-[9px]">{t('MODEL')}</span>
+                                    <span className="text-neutral-200 font-black truncate max-w-[100px]">{selectedModel || t('NONE')}</span>
+                                    <ChevronDownIcon className={`w-3.5 h-3.5 text-neutral-400 group-hover/btn:text-neutral-200 transition-transform duration-300 ${isModelSelectorOpen ? 'rotate-180' : ''}`} />
                                 </button>
                                 {isModelSelectorOpen && (
-                                    <div className="absolute left-0 bottom-full mb-2 w-64 bg-slate-900 border border-white/10 rounded-xl shadow-[0_-20px_50px_rgba(0,0,0,0.7)] z-[60] overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-bottom-2">
-                                        <div className="p-1 px-4 text-[9px] font-black text-slate-500 uppercase py-2 border-b border-white/5 tracking-[0.2em] bg-white/[0.02]">Select Model</div>
+                                    <div className="absolute left-0 bottom-full mb-2 w-64 bg-neutral-900 border border-white/10 rounded-xl  z-[60] overflow-hidden backdrop-blur-3xl animate-in fade-in slide-in-from-bottom-2">
+                                        <div className="p-1 px-4 text-[9px] font-black text-neutral-400 uppercase py-2 border-b border-white/5 tracking-[0.2em] bg-white/[0.02]">{t('Select Model')}</div>
                                         <div className="max-h-64 overflow-y-auto custom-scrollbar p-1.5">
                                             {availableModels.map(m => (
-                                                <button key={m} onClick={() => { onSelectModel(m); setIsModelSelectorOpen(false); }} className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all mb-0.5 last:mb-0 ${selectedModel === m ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}>
+                                                <button key={m} onClick={() => { onSelectModel(m); setIsModelSelectorOpen(false); }} className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all mb-0.5 last:mb-0 ${selectedModel === m ? 'bg-neutral-700 text-white shadow-lg' : 'hover:bg-white/5 text-neutral-300 hover:text-white'}`}>
                                                     {m}
                                                 </button>
                                             ))}
@@ -273,30 +275,30 @@ export const ControlHub: React.FC<ControlHubProps> = ({
                             </div>
                         )}
                         <div className="w-px h-4 bg-white/10" />
-                        <button onClick={() => setShowReasoning(!showReasoning)} className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors group">
-                            <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative ${showReasoning ? 'bg-blue-600' : 'bg-white/10'} border border-white/5`}>
+                        <button onClick={() => setShowReasoning(!showReasoning)} aria-pressed={showReasoning} className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors group">
+                            <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative ${showReasoning ? 'bg-neutral-700' : 'bg-white/10'} border border-white/5`}>
                                 <div className={`absolute top-0.5 w-2.5 h-2.5 bg-white rounded-full transition-all duration-300 shadow-md ${showReasoning ? 'left-[14px]' : 'left-0.5'}`} />
                             </div>
-                            <span className="text-[9px] uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-200 transition-colors whitespace-nowrap">Show Reasoning</span>
+                            <span className="text-[9px] uppercase font-bold tracking-wider text-neutral-400 group-hover:text-neutral-200 transition-colors whitespace-nowrap">{t('Show Reasoning')}</span>
                         </button>
                         <div className="w-px h-3 bg-white/10" />
-                        <button onClick={() => setIsStreaming(!isStreaming)} className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors group">
-                            <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative ${isStreaming ? 'bg-purple-600' : 'bg-white/10'} border border-white/5`}>
+                        <button onClick={() => setIsStreaming(!isStreaming)} aria-pressed={isStreaming} className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors group">
+                            <div className={`w-7 h-3.5 rounded-full transition-all duration-300 relative ${isStreaming ? 'bg-neutral-700' : 'bg-white/10'} border border-white/5`}>
                                 <div className={`absolute top-0.5 w-2.5 h-2.5 bg-white rounded-full transition-all duration-300 shadow-md ${isStreaming ? 'left-[14px]' : 'left-0.5'}`} />
                             </div>
-                            <span className="text-[9px] uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-200 transition-colors whitespace-nowrap">Stream</span>
+                            <span className="text-[9px] uppercase font-bold tracking-wider text-neutral-400 group-hover:text-neutral-200 transition-colors whitespace-nowrap">{t('Stream')}</span>
                         </button>
                     </div>
                 </div>
 
                 <div className="flex gap-2">
                     {isLoading ? (
-                        <button onClick={onStop} className="flex-grow bg-red-600/10 text-red-400 border border-red-500/20 py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-red-600/20 active:scale-95 transition-all font-bold text-sm tracking-tight">
-                            <StopIcon className="w-4 h-4" /> Interrupt
+                        <button onClick={onStop} className="flex-grow bg-neutral-700/10 text-neutral-200 border border-neutral-500/20 py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-neutral-700/20 active:scale-95 transition-all font-bold text-sm tracking-tight">
+                            <StopIcon className="w-4 h-4" /> Stop run
                         </button>
                     ) : (
-                        <button onClick={onRun} disabled={!selectedFunctionId || !selectedModel} className="flex-grow bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 hover:shadow-[0_0_25px_rgba(59,130,246,0.3)] disabled:opacity-30 disabled:grayscale transition-all active:scale-[0.98] font-bold text-sm tracking-tight">
-                            <PlayIcon className="w-4 h-4" /> Run AI
+                        <button onClick={onRun} disabled={!selectedFunctionId || !selectedModel} className="flex-grow bg-neutral-200 text-neutral-950 py-2.5 rounded-xl flex items-center justify-center gap-2  disabled:opacity-30 disabled:grayscale transition-all active:scale-[0.98] font-bold text-sm tracking-tight">
+                            <PlayIcon className="w-4 h-4" /> {t('Run function')}
                         </button>
                     )}
                 </div>

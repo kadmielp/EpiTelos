@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useLanguage } from '../i18n';
 import { IContextSource, TreeNode } from '../types';
 import { FolderIcon } from './icons/FolderIcon';
 import { DocumentIcon } from './icons/DocumentIcon';
@@ -134,6 +135,7 @@ interface RecursiveNodeProps {
 }
 
 const RecursiveNode: React.FC<RecursiveNodeProps> = ({ node, renderNode, level }) => {
+  const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(true);
   
   const toggleExpand = (e: React.MouseEvent) => {
@@ -151,8 +153,8 @@ const RecursiveNode: React.FC<RecursiveNodeProps> = ({ node, renderNode, level }
           {node.children.length > 0 && (
             <button 
               onClick={toggleExpand} 
-              className="p-1 rounded-full text-slate-400 hover:text-white"
-              aria-label={isExpanded ? 'Collapse' : 'Expand'}
+              className="p-1 rounded-full text-neutral-300 hover:text-white"
+              aria-label={t(isExpanded ? 'Collapse' : 'Expand')}
             >
               {isExpanded ? <ChevronDownIcon className="w-4 h-4" /> : <ChevronRightIcon className="w-4 h-4" />}
             </button>

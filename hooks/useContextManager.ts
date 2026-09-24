@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { IContextSource, ISettings } from '../types';
+import { translate } from '../i18n';
 import * as webFileService from '../services/fileService';
 import * as desktopFileService from '../services/desktopFileService';
 
@@ -40,7 +41,7 @@ export const useContextManager = (
         includeSubfolders: boolean
     ) => {
         if (userAddedContexts.some(c => c.path === path)) {
-            alert("This context source has already been added.");
+            alert(translate(settings.language, "This context source has already been added."));
             return;
         }
         const newSource: IContextSource = {

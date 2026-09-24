@@ -1,5 +1,7 @@
+import { useLanguage } from '../../i18n';
 import React from 'react';
 import { ISettings, VerificationStatus } from '../../types';
+import * as localGgufService from '../../services/localGgufService';
 
 interface ModelSourceConfigProps {
     settings: ISettings;
@@ -16,82 +18,122 @@ export const ModelSourceConfig: React.FC<ModelSourceConfigProps> = ({
     verificationStatus,
     verifyAndLoadModels
 }) => {
-    const sources: ISettings['modelSource'][] = ['Gemini', 'Ollama', 'OpenAI', 'Maritaca', 'Custom'];
+    const { t } = useLanguage();
+    const sources: ISettings['modelSource'][] = ['Gemini', 'Ollama', 'Local GGUF', 'OpenAI', 'Maritaca', 'Custom'];
+    const addModel = async () => {
+        if (!window.__TAURI__) return;
+        const selected = await window.__TAURI__.dialog.open({ multiple: true, filters: [{ name: 'GGUF models', extensions: ['gguf'] }] });
+        if (!selected) return;
+        const paths = Array.isArray(selected) ? selected : [selected];
+        try {
+            const validated = await Promise.all(paths.map(path => localGgufService.validateModel(path)));
+            const models = [...new Set([...(settings.localGgufModels || []), ...validated])];
+            updateSettings({ localGgufModels: models, preferredModel: settings.preferredModel || models[0] });
+        } catch (error) {
+            alert(error instanceof Error ? error.message : String(error));
+        }
+    };
+    const removeModel = (path: string) => {
+        const models = (settings.localGgufModels || []).filter(model => model !== path);
+        updateSettings({ localGgufModels: models, preferredModel: settings.preferredModel === path ? (models[0] || '') : settings.preferredModel });
+    };
 
     return (
         <section className="space-y-6">
             <div className="flex items-center gap-3 mb-2">
-                <div className="w-1.5 h-6 bg-blue-600 rounded-full" />
-                <h3 className="text-sm font-black uppercase tracking-widest text-white">Intelligence Provider</h3>
+                <div className="w-1.5 h-6 bg-neutral-700 rounded-full" />
+                <h3 className="text-sm font-black uppercase tracking-widest text-white">{t('AI provider')}</h3>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 {sources.map(source => (
                     <button
                         key={source}
                         onClick={() => updateSettings({ modelSource: source })}
+                        disabled={source === 'Local GGUF' && !window.__TAURI__}
                         className={`px-4 py-3 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest ${settings.modelSource === source
-                            ? 'bg-blue-600/20 border-blue-500 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)]'
-                            : 'bg-white/5 border-white/5 text-slate-500 hover:border-white/10 hover:bg-white/10'
+                            ? 'bg-neutral-700/20 border-neutral-500 text-neutral-200 '
+                            : 'bg-white/5 border-white/5 text-neutral-400 hover:border-white/10 hover:bg-white/10'
                             }`}
+                        title={source === 'Local GGUF' && !window.__TAURI__ ? t('Requires the Windows desktop app') : undefined}
                     >
                         {source}
                     </button>
                 ))}
             </div>
 
-            <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-6">
+            <div className="surface-card border rounded-3xl p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Side: Keys & URLs */}
                     <div className="space-y-6">
                         {settings.modelSource === 'Gemini' && (
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Gemini API Key</label>
+                                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">{t('Gemini API Key')}</label>
                                 <input
                                     type="password"
-                                    placeholder="Enter your Google AI API key"
+                                    placeholder={t('Enter your Google AI API key')}
                                     value={settings.geminiApiKey || ''}
                                     onChange={(e) => updateSettings({ geminiApiKey: e.target.value })}
-                                    className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                                    className="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neutral-500/50 outline-none transition-all"
                                 />
                             </div>
                         )}
 
                         {settings.modelSource === 'Ollama' && (
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ollama API URL</label>
+                                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">Ollama API URL</label>
                                 <input
                                     type="text"
                                     placeholder="http://localhost:11434"
                                     value={settings.ollamaApiUrl || ''}
                                     onChange={(e) => updateSettings({ ollamaApiUrl: e.target.value })}
-                                    className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                                    className="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neutral-500/50 outline-none transition-all"
                                 />
+                            </div>
+                        )}
+
+                        {settings.modelSource === 'Local GGUF' && (
+                            <div className="space-y-3">
+                                <p className="text-xs text-neutral-400">{t('Choose downloaded GGUF files. One model runs at a time.')}</p>
+                                <button onClick={addModel} className="px-4 py-2 rounded-xl border border-white/10 text-sm text-white hover:bg-white/10">{t('Add GGUF files')}</button>
+                                <div className="space-y-1 max-h-36 overflow-y-auto">
+                                    {(settings.localGgufModels || []).map(path => (
+                                        <div key={path} className="flex items-center gap-2 text-xs text-neutral-300">
+                                            <span className="truncate" title={path}>{path}</span>
+                                            <button onClick={() => removeModel(path)} aria-label={`${t('Remove ')}${path}`} className="text-neutral-400 hover:text-white">{t('Remove')}</button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <label className="block text-xs text-neutral-400">{t('Runtime')}</label>
+                                <select value={settings.localGgufBackend || 'auto'} onChange={e => updateSettings({ localGgufBackend: e.target.value as ISettings['localGgufBackend'] })} className="w-full bg-neutral-950 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                                    <option value="auto">{t('Automatic GPU or CPU')}</option><option value="cpu">CPU</option><option value="cuda">CUDA</option><option value="vulkan">Vulkan</option>
+                                </select>
+                                <p className="text-xs text-neutral-400">{t('If a GPU fails to load, select CPU and refresh models.')}</p>
                             </div>
                         )}
 
                         {settings.modelSource === 'OpenAI' && (
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">OpenAI API Key</label>
+                                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">{t('OpenAI API Key')}</label>
                                 <input
                                     type="password"
                                     placeholder="sk-..."
                                     value={settings.openaiApiKey || ''}
                                     onChange={(e) => updateSettings({ openaiApiKey: e.target.value })}
-                                    className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                                    className="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neutral-500/50 outline-none transition-all"
                                 />
                             </div>
                         )}
 
                         {settings.modelSource === 'Maritaca' && (
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Maritaca API Key</label>
+                                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">{t('Maritaca API Key')}</label>
                                 <input
                                     type="password"
-                                    placeholder="Enter Maritaca key"
+                                    placeholder={t('Enter Maritaca key')}
                                     value={settings.maritacaApiKey || ''}
                                     onChange={(e) => updateSettings({ maritacaApiKey: e.target.value })}
-                                    className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                                    className="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neutral-500/50 outline-none transition-all"
                                 />
                             </div>
                         )}
@@ -99,23 +141,23 @@ export const ModelSourceConfig: React.FC<ModelSourceConfigProps> = ({
                         {settings.modelSource === 'Custom' && (
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Base URL</label>
+                                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">{t('Base URL')}</label>
                                     <input
                                         type="text"
                                         placeholder="https://api.example.com/v1"
                                         value={settings.customApiUrl || ''}
                                         onChange={(e) => updateSettings({ customApiUrl: e.target.value })}
-                                        className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                                        className="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neutral-500/50 outline-none transition-all"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">API Key</label>
+                                    <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">{t('API Key')}</label>
                                     <input
                                         type="password"
                                         placeholder="sk-..."
                                         value={settings.customApiKey || ''}
                                         onChange={(e) => updateSettings({ customApiKey: e.target.value })}
-                                        className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                                        className="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neutral-500/50 outline-none transition-all"
                                     />
                                 </div>
                             </div>
@@ -124,18 +166,18 @@ export const ModelSourceConfig: React.FC<ModelSourceConfigProps> = ({
                         <div className="pt-2 flex items-center justify-between">
                             <button
                                 onClick={() => verifyAndLoadModels(settings.modelSource, settings)}
-                                className="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all active:scale-95"
+                                className="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-neutral-200 transition-all active:scale-95"
                             >
-                                Refresh Models
+                                {t(settings.modelSource === 'Local GGUF' ? 'Load Model' : 'Refresh Models')}
                             </button>
 
                             {verificationStatus && (
-                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${verificationStatus.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                                    verificationStatus.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                                        'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${verificationStatus.type === 'success' ? 'bg-neutral-500/10 border-neutral-500/20 text-neutral-200' :
+                                    verificationStatus.type === 'error' ? 'bg-neutral-500/10 border-neutral-500/20 text-neutral-200' :
+                                        'bg-neutral-500/10 border-neutral-500/20 text-neutral-200'
                                     }`}>
-                                    <div className={`w-1.5 h-1.5 rounded-full ${verificationStatus.type === 'success' ? 'bg-emerald-500 animate-pulse' :
-                                        verificationStatus.type === 'error' ? 'bg-red-500' : 'bg-blue-500 animate-spin'
+                                    <div className={`w-1.5 h-1.5 rounded-full ${verificationStatus.type === 'success' ? 'bg-neutral-500 animate-pulse' :
+                                        verificationStatus.type === 'error' ? 'bg-neutral-500' : 'bg-neutral-500 animate-spin'
                                         }`} />
                                     <span className="text-[10px] font-bold uppercase tracking-widest">{verificationStatus.message}</span>
                                 </div>
@@ -145,21 +187,21 @@ export const ModelSourceConfig: React.FC<ModelSourceConfigProps> = ({
 
                     {/* Right Side: Preferred Model selection */}
                     <div className="space-y-2 border-l border-white/5 pl-0 lg:pl-8">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                            Preferred Model ({availableModels.length} available)
+                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">
+                            {t('Preferred Model')} ({availableModels.length} {t('available')})
                         </label>
                         <select
                             value={settings.preferredModel}
                             onChange={(e) => updateSettings({ preferredModel: e.target.value })}
-                            className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-blue-500/50 outline-none transition-all cursor-pointer appearance-none shadow-inner"
+                            className="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-neutral-500/50 outline-none transition-all cursor-pointer appearance-none shadow-inner"
                         >
-                            <option value="" className="bg-slate-900">Select an active model...</option>
+                            <option value="" className="bg-neutral-900">{t('Select an active model...')}</option>
                             {availableModels.map(model => (
-                                <option key={model} value={model} className="bg-slate-900">{model}</option>
+                                <option key={model} value={model} className="bg-neutral-900">{model}</option>
                             ))}
                         </select>
-                        <p className="text-[9px] text-slate-600 italic mt-2 ml-1">
-                            This model will be used as the primary engine for inference sessions.
+                        <p className="text-[9px] text-neutral-400 italic mt-2 ml-1">
+                            {t('This model will be used for new runs.')}
                         </p>
                     </div>
                 </div>
