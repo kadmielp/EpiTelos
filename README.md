@@ -9,24 +9,25 @@
   <img alt="Vibecoded" src="https://img.shields.io/badge/vibecoded-yes-8A2BE2">
 </p>
 <h1 align="center">EpiTelos - Personal Development AI</h1>
-<p align="center">EpiTelos is an AI orchestration platform designed for personal growth and self-reflection, especially for people who journal regularly</p>
+<p align="center">EpiTelos is an AI orchestration platform designed for personal growth, strategic thinking, and self-reflection, especially for people who journal regularly.</p>
 
 ---
 
 ## Who is EpiTelos for
-- People who already journal (daily notes, mood logs, or long-form reflections).
-- Knowledge workers who keep detailed notes and want AI help spotting patterns.
-- Anyone who wants a private, local-first AI partner for deep life reflection rather than a generic chat bot.
+- **Journalers**: People who maintain daily notes, mood logs, or long-form reflections and want deeper insights into their thinking.
+- **Knowledge Workers**: Professionals who maintain detailed notes and want AI assistance spotting patterns, blindspots, and hidden connections.
+- **Privacy-Conscious Thinkers**: Anyone seeking a private, local-first AI thinking partner with offline model execution rather than sending personal reflections to cloud chatbots.
+
 ---
 
 ## 🧭 The Core Pillars
 
 | Pillar | Description |
 | :--- | :--- |
-| **Clarity** | AI reveals patterns, contradictions, and insights hidden in your own words. |
-| **Privacy First** | Hardware-encrypted OS Keychain storage for API keys and total local model support. |
-| **Intelligence orchestration** | Specialized system prompts directed at specific growth outcomes (e.g., "Find Blindspots"). |
-| **Contextual Awareness** | AI logic is fueled by your actual files, not generic training data. |
+| **Clarity** | AI reveals recurring patterns, cognitive contradictions, and actionable insights hidden in your own notes. |
+| **Privacy First** | Hardware-encrypted OS Keychain storage for API keys, with complete offline local model execution (Ollama & GGUF). |
+| **Intelligence Orchestration** | Over 50 specialized system prompt architectures targeted at strategic outcomes (e.g., "Find Blindspots", "Fireproof Idea"). |
+| **Contextual Awareness** | AI reasoning is grounded in your actual files and folder hierarchies, not generic pre-training data. |
 
 ---
 
@@ -35,50 +36,75 @@
 | <p align="center"><img src="images/run-ai.png" width="100%" alt="Run AI Workspace" /></p> |
 | :--- |
 
+| <img src="images/functions.png" width="100%" alt="Functions Manager" /> | <img src="images/context.png" width="100%" alt="Knowledge Sources" /> |
+| :---: | :---: |
+| **Function Manager** | **Knowledge Context** |
+| <img src="images/history.png" width="100%" alt="Session History" /> | <img src="images/settings.png" width="100%" alt="Settings Configuration" /> |
+| **Session History** | **Configuration** |
 
-| <img src="images/functions.png" width="100%" alt="Functions Manager" /> | <img src="images/context.png" width="100%" alt="Context Manager" /> | <img src="images/settings.png" width="100%" alt="Settings Configuration" /> |
-| :---: | :---: | :---: |
-| **Function Manager** | **Knowledge Context** | **Configuration** |
+---
 
 ## 📖 Component Documentation
 
-### 1. Run AI (The Workspace)
-The **Run AI** view is your primary command center where logic meets context.
+### 1. Workspace (The Command Center)
+The **Workspace** is your primary thinking environment where prompts meet knowledge context.
 
-- **Intelligence Selector**: Search and select from a library of built-in or custom AI functions.
-- **Context Tree**: A hierarchical file browser where you can toggle specific files or entire folders to be used as the AI's "short-term memory."
-- **Execution Controls**:
-    - **Reasoning Toggle**: Enable support for chain-of-thought models (like DeepSeek R1).
-    - **Custom Instructions**: Add one-off directions to refine the AI's behavior for a specific run.
-- **Output Management**:
-    - **Real-time Streaming**: Watch the AI "think" and respond in real-time.
-    - **Markdown Persistence**: Save any insightful response as a timestamped `.md` file for your archives.
+- **Intelligence Selector**: Search and select from 50 built-in professional prompts or your own custom intelligence functions.
+- **Context Tree**: A hierarchical file browser with granular checkboxes to select specific files or entire directory trees as the AI's short-term memory.
+- **Interactive Execution Controls**:
+    - **Reasoning Toggle**: Dedicated support for chain-of-thought models (such as DeepSeek R1 and QwQ) with collapsible, animated `<think>` blocks.
+    - **Stream Toggle**: Real-time token streaming to observe the AI's generation as it develops.
+    - **Your Prompt**: Add focused instructions or one-off questions to steer the active run.
+    - **Model Memory**: Remembers your preferred model for each provider and auto-selects it when switching.
+- **Response Terminal**:
+    - **Live Markdown Rendering**: Formats responses with full GFM tables, syntax-highlighted code blocks, and lists.
+    - **Mermaid Visualizations**: Automatically renders interactive architectural diagrams, flowcharts, and mindmaps directly within responses.
+    - **Persistence & Export**: Copy formatted text with one click or export any output to a timestamped `.md` file.
 
 ### 2. Functions (Intelligence Library)
-This page manages the **System Prompts** that define the AI's personality and expertise.
+Manages the **System Prompts** that define the AI's cognitive frameworks and areas of expertise.
 
-- **Built-in Architectures**: Access a curated set of professional growth functions (Read-Only).
-- **Proprietary Assets**: Create your own functions by defining a custom System Prompt.
-- **Instant Inspection**: Click any card (Built-in or Custom) to pull up the "Core View"—a monospaced inspection modal showing the exact instructions the AI follows.
-- **Categorization**: Keep your library organized with custom classifications like "Strategy," "Health," or "Development."
+- **50 Built-in Architectures**: A curated collection of reflection, strategy, interpersonal, and cognitive prompt architectures (Read-Only).
+- **Custom Functions**: Build proprietary functions by defining a custom system prompt, description, and classification.
+- **Core View Inspection**: Click any card (built-in or custom) to open a monospaced inspection modal showing the exact instructions given to the model.
+- **Categorization**: Filter and organize prompts by categories such as *Business & Strategy*, *Personal Growth*, *Career Development*, *Interpersonal*, and *Project Management*.
 
-### 3. Context (Knowledge Manager)
-The **Context Manager** is where you curate the data sources the AI is allowed to see.
+### 3. Sources (Knowledge Manager)
+Curates the documents, journals, and directories that the AI is permitted to examine.
 
-- **Source Ingestion**: Add local files or entire directories use native OS file pickers.
-- **Recursive Control**: Optionally include all subdirectories when adding folders.
-- **Visibility Toggle**: Temporarily hide sources from the "Run AI" view without deleting them from your database.
-- **Local Persistence**: Your list of files is stored locally and never synced to a cloud provider.
+- **Flexible Ingestion**: Add individual files or entire folders using native OS file pickers or drag-and-drop.
+- **Recursive Control**: Optionally include nested subdirectories when importing folders.
+- **Visibility Toggles**: Temporarily hide specific sources from the active Workspace without deleting them from your database.
+- **Local Persistence**: Knowledge source paths are stored locally on your machine and never synced to external cloud servers.
 
-### 4. System Settings (Global Config)
-Configure your AI providers and application behavior.
+### 4. History (Session Archives)
+A centralized timeline of every run, reflection, and AI interaction.
 
-- **Provider Management**: **Local** is the default provider group. Choose **Ollama** or **GGUF** within it; Gemini, OpenAI, Maritaca AI, and custom OpenAI-compatible endpoints remain available.
-- **Intelligence Memory**: The app remembers which model you prefer for each provider and restores it when you switch back.
-- **Language**: Choose English or Brazilian Portuguese for the interface and generated responses. An explicit request such as "Answer in English" in **Your prompt** can override the default.
-- **Interface Preferences**: Enable or disable completion sounds and system notifications.
-- **Profile Portability**: Export your setup to a JSON file and import it on another machine.
-- **API Key Storage**: Desktop API keys use the operating system's credential store.
+- **Date Grouping**: Automatically organizes sessions into chronological sections (*Today*, *Yesterday*, *This Week*, *This Month*, or older).
+- **Omni Search**: Search and filter past interactions by prompt text, response content, model, or function name.
+- **Context Provenance**: Clickable context chips show the exact knowledge sources used for any past session and open an instant inspection view.
+- **1-Click Workspace Restore**: Click **Restore to Laboratory** to reload the session's prompt, function, model, and context back into the active Workspace.
+- **Reasoning Preservation**: Preserves the complete chain-of-thought reasoning trace alongside the assistant's final response.
+- **Keyboard Navigation**: Browse past sessions with arrow keys, restore with `Enter`, delete with `Delete`, and dismiss with `Esc`.
+
+### 5. Settings (Global Configuration)
+Configure AI providers, inference backends, and user preferences.
+
+- **Provider Management**:
+    - **Local (Default)**:
+        - **Ollama**: Connect to a local Ollama instance (`http://localhost:11434`) with model detection, streaming, and reasoning support.
+        - **GGUF (Desktop)**: Run local `.gguf` model files directly on Windows with llama.cpp and GPU acceleration.
+    - **Cloud Providers**:
+        - **Google Gemini**: Built on the official `@google/genai` SDK.
+        - **OpenAI**: Native support for standard OpenAI chat and reasoning models.
+        - **Maritaca AI**: Specialized reasoning models tailored for Brazilian Portuguese.
+        - **Custom Endpoints**: Compatible with any OpenAI-compatible API base URL (vLLM, LM Studio, OpenRouter, LocalAI).
+- **Bilingual Interface**: Select **English** or **Brazilian Portuguese (`pt-BR`)** for the interface and default generation language (overrideable in prompts).
+- **Interface Preferences**: Toggle completion sounds and system notifications.
+- **Profile Portability**: Export your entire setup (settings and context registry) to JSON and import it onto another machine.
+- **Secure Key Storage**: API keys on the desktop build are stored securely in the operating system's credential keychain.
+
+---
 
 ### Local GGUF models (Windows desktop)
 
@@ -94,18 +120,50 @@ The runtimes are downloaded with SHA-256 verification during Windows desktop pac
 
 ## 🚀 Technical Setup & Development
 
-### Adding Built-in Functions
-EpiTelos features an automatic discovery script. To add a permanent function:
-1. Create a folder in `functions/`.
-2. Add a `system.md` (the prompt).
-3. Add a `metadata.json` (name, desc, category).
-The build process will automatically index these into the application manifest.
+### Web Development
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Start development server**:
+   ```bash
+   npm run dev
+   ```
+3. **Build web assets**:
+   ```bash
+   npm run build
+   ```
+4. **Preview production build**:
+   ```bash
+   npm run preview
+   ```
 
-### Desktop Deployment
-1. **Prerequisites**: [Node.js](https://nodejs.org/) & [Rust](https://www.rust-lang.org/).
-2. **Install**: `npm install`
-3. **Dev**: `npm run tauri dev`
-4. **Build**: `npm run tauri build` (Generates standalone `.exe` or `.app`)
+### Desktop Deployment (Tauri)
+1. **Prerequisites**: [Node.js](https://nodejs.org/) (v18+) & [Rust](https://www.rust-lang.org/) (cargo).
+2. **Run Tauri in development**:
+   ```bash
+   npm run tauri dev
+   ```
+3. **Package desktop application** (Generates standalone `.exe` installer):
+   ```bash
+   npm run tauri build
+   ```
+
+### Adding Built-in Functions
+EpiTelos includes an automated prompt discovery system:
+1. Create a new folder inside `functions/<function_id>/`.
+2. Add `system.md` containing the system prompt instructions.
+3. Add `metadata.json` specifying `name`, `description`, and `category`.
+4. Run the manifest generator:
+   ```bash
+   npm run generate-functions
+   ```
+
+### UI Screenshot Automation
+Regenerate high-resolution screenshots for all application views at any time:
+```bash
+npm run capture-screenshots
+```
 
 ---
 
