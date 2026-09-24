@@ -33,13 +33,13 @@
 
 ## Screenshots
 
-| <p align="center"><img src="images/run-ai.png" width="100%" alt="Run AI Workspace" /></p> |
+| <p align="center"><img src="images/screenshots/run-ai.png" width="100%" alt="Run AI Workspace" /></p> |
 | :--- |
 
-| <img src="images/functions.png" width="100%" alt="Functions Manager" /> | <img src="images/context.png" width="100%" alt="Knowledge Sources" /> |
+| <img src="images/screenshots/functions.png" width="100%" alt="Functions Manager" /> | <img src="images/screenshots/context.png" width="100%" alt="Knowledge Sources" /> |
 | :---: | :---: |
 | **Function Manager** | **Knowledge Context** |
-| <img src="images/history.png" width="100%" alt="Session History" /> | <img src="images/settings.png" width="100%" alt="Settings Configuration" /> |
+| <img src="images/screenshots/history.png" width="100%" alt="Session History" /> | <img src="images/screenshots/settings.png" width="100%" alt="Settings Configuration" /> |
 | **Session History** | **Configuration** |
 
 ---

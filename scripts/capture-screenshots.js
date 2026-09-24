@@ -17,9 +17,26 @@ const mimeTypes = {
 
 const distDir = path.resolve('dist');
 const imagesDir = path.resolve('images');
+const screenshotsDir = path.join(imagesDir, 'screenshots');
 if (!fs.existsSync(imagesDir)) {
   fs.mkdirSync(imagesDir, { recursive: true });
 }
+if (!fs.existsSync(screenshotsDir)) {
+  fs.mkdirSync(screenshotsDir, { recursive: true });
+}
+
+const saveScreenshot = async (page, filename) => {
+  const buffer = await page.screenshot();
+  const pScreenshot = path.join(screenshotsDir, filename);
+  fs.writeFileSync(pScreenshot, buffer);
+  try {
+    const pImage = path.join(imagesDir, filename);
+    fs.writeFileSync(pImage, buffer);
+  } catch {
+    // Non-fatal fallback for legacy path
+  }
+  console.log(`Saved ${filename} to images/screenshots/`);
+};
 
 // 1. Static file server for dist/
 const staticServer = http.createServer((req, res) => {
@@ -270,8 +287,7 @@ async function main() {
   await page.mouse.move(0, 0);
   await sleep(300);
 
-  await page.screenshot({ path: path.join(imagesDir, 'run-ai.png') });
-  console.log('Saved images/run-ai.png');
+  await saveScreenshot(page, 'run-ai.png');
 
   // --- 2. FUNCTIONS (FUNCTION MANAGER) ---
   console.log('Navigating to Functions...');
@@ -280,8 +296,7 @@ async function main() {
   await sleep(600);
   await page.mouse.move(0, 0);
   await sleep(300);
-  await page.screenshot({ path: path.join(imagesDir, 'functions.png') });
-  console.log('Saved images/functions.png');
+  await saveScreenshot(page, 'functions.png');
 
   // --- 3. CONTEXT (SOURCES) ---
   console.log('Navigating to Sources...');
@@ -290,8 +305,7 @@ async function main() {
   await sleep(600);
   await page.mouse.move(0, 0);
   await sleep(300);
-  await page.screenshot({ path: path.join(imagesDir, 'context.png') });
-  console.log('Saved images/context.png');
+  await saveScreenshot(page, 'context.png');
 
   // --- 4. HISTORY (ARCHIVES) ---
   console.log('Navigating to History...');
@@ -300,8 +314,7 @@ async function main() {
   await sleep(800);
   await page.mouse.move(0, 0);
   await sleep(300);
-  await page.screenshot({ path: path.join(imagesDir, 'history.png') });
-  console.log('Saved images/history.png');
+  await saveScreenshot(page, 'history.png');
 
   // --- 5. SETTINGS (CONFIGURATION) ---
   console.log('Navigating to Settings...');
@@ -310,8 +323,7 @@ async function main() {
   await sleep(1500); // Wait for verification status "Ollama connection successful."
   await page.mouse.move(0, 0);
   await sleep(300);
-  await page.screenshot({ path: path.join(imagesDir, 'settings.png') });
-  console.log('Saved images/settings.png');
+  await saveScreenshot(page, 'settings.png');
 
   await browser.close();
   staticServer.close();
