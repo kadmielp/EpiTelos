@@ -1,7 +1,7 @@
 {
   "name": "epitelos",
   "private": true,
-  "version": "1.7.1",
+  "version": "1.7.2",
   "type": "module",
   "scripts": {
     "generate-functions": "node scripts/generate-functions.js",
@@ -9,6 +9,7 @@
     "build": "npm run generate-functions && tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "build:installer": "tauri build --bundles nsis && powershell -ExecutionPolicy Bypass -File scripts/verify-installer-runtimes.ps1",
     "capture-screenshots": "node scripts/capture-screenshots.js"
   },
   "dependencies": {

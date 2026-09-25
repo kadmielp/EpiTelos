@@ -7,6 +7,12 @@ and this project adheres to Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-09-25
+
+### Fixed
+- Locate the bundled GGUF CPU, CUDA, and Vulkan runtimes in the Windows installer layout.
+- Check that each runtime is included at the path used by the application before accepting an installer build.
+
 ## [1.7.1] - 2026-09-25
 
 ### Changed

@@ -73,8 +73,13 @@ fn backend_path(window: &Window, backend: &str) -> Result<PathBuf, String> {
 }
 
 fn runtime_path(resource_dir: &Path, backend: &str) -> Result<PathBuf, String> {
-    let bundled = resource_dir.join("local_gguf").join(backend).join("llama-server.exe");
+    // Tauri v1 keeps the source `resources/` prefix in Windows installers.
+    let bundled = resource_dir.join("resources").join("local_gguf").join(backend).join("llama-server.exe");
     if bundled.is_file() { return Ok(bundled); }
+
+    // Accept bundles produced with an explicit resource destination as well.
+    let mapped = resource_dir.join("local_gguf").join(backend).join("llama-server.exe");
+    if mapped.is_file() { return Ok(mapped); }
 
     // Running target/debug or target/release directly does not install Tauri bundle resources.
     // In that case, use the runtimes prepared in the source tree. Installed builds still

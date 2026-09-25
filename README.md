@@ -146,7 +146,7 @@ The runtimes are downloaded with SHA-256 verification during Windows desktop pac
    ```
 3. **Package desktop application** (Generates standalone `.exe` installer):
    ```bash
-   npm run tauri build
+   npm run build:installer
    ```
 
 ### Adding Built-in Functions

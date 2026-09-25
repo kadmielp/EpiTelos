@@ -1,5 +1,5 @@
 @echo off
 cd /d "%~dp0"
-echo Running: npm run tauri build in %cd%
-npm run tauri build
+echo Running: npm run build:installer in %cd%
+npm run build:installer
 pause
